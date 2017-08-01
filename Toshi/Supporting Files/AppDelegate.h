@@ -42,5 +42,7 @@ extern NSString * _Nonnull const RequiresSignIn;
 
 + (nonnull NSString *)documentsPath;
 
+- (void)signOutUser;
+
 @end
 

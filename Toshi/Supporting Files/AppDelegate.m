@@ -64,8 +64,6 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     
     [self setupBasicAppearance];
 
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userDidSignOut) name:@"UserDidSignOut" object:nil];
-
     if ([Yap isCurrentUserDataAccessible]) {
 
         [TokenUser retrieveCurrentUser];
@@ -134,9 +132,11 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     }
 }
 
-- (void)userDidSignOut {
+- (void)signOutUser
+{
     [TSAccountManager unregisterTextSecureWithSuccess:^{
 
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"UserDidSignOut" object:nil];
         [AvatarManager.shared cleanCache];
 
         [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:[[NSBundle mainBundle] bundleIdentifier]];
@@ -146,7 +146,9 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:RequiresSignIn];
         [[NSUserDefaults standardUserDefaults] synchronize];
 
-        exit(0);
+        [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
+
+         exit(0);
     } failure:^(NSError *error) {
         UIAlertController *alert = [UIAlertController dismissableAlertWithTitle:@"Could not sign out" message:@"Error attempting to unregister from chat service. Our engineers are looking into it."];
 
@@ -158,8 +160,8 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 {
     __weak typeof(self)weakSelf = self;
     [[IDAPIClient shared] registerUserIfNeeded:^{
-
         typeof(self)strongSelf = weakSelf;
+
         [[ChatAPIClient shared] registerUser];
 
         [strongSelf didCreateUser];
@@ -208,11 +210,10 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 }
 
 - (void)setupSignalService {
-    NSLog(@"Setting up Signal Service");
     // Encryption/Descryption mutates session state and must be synchronized on a serial queue.
     [SessionCipher setSessionCipherDispatchQueue:[OWSDispatch sessionStoreQueue]];
 
-    NSLog(@"Cereal registeres phone number: %@", [Cereal shared].address);//0x96da8ed2da9920ddf504a757febbd9107e6b76df
+    NSLog(@"Cereal registeres phone number: %@", [Cereal shared].address);
 
     [[TSStorageManager sharedManager] storePhoneNumber:[[Cereal shared] address]];
 
@@ -244,7 +245,7 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     self.contactsUpdater = [ContactsUpdater sharedUpdater];
 
     TSStorageManager *storageManager = [TSStorageManager sharedManager];
-    [storageManager setupDatabase];
+    [storageManager setupForAccountName:TokenUser.current.address];
 
     self.messageSender = [[OWSMessageSender alloc] initWithNetworkManager:self.networkManager storageManager:storageManager contactsManager:self.contactsManager contactsUpdater:self.contactsUpdater];
 
@@ -262,22 +263,12 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
-  //  [SignalNotificationManager updateApplicationBadgeNumber];
-    
     if ([TSAccountManager isRegistered]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [self activateScreenProtection];
             // [TSSocketManager resignActivity];
         });
     }
-}
-
-- (void)applicationDidEnterBackground:(UIApplication *)application {
-    [SignalNotificationManager updateApplicationBadgeNumber];
-}
-
-- (void)applicationWillEnterForeground:(UIApplication *)application {
-    [SignalNotificationManager updateApplicationBadgeNumber];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {

@@ -200,14 +200,18 @@ open class SettingsController: UITableViewController {
             alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
             alert.addAction(UIAlertAction(title: "Sign out", style: .destructive) { _ in
-                NotificationCenter.default.post(name: .UserDidSignOut, object: nil)
+
+                guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+                appDelegate.signOutUser()
             })
         } else if balance == .zero {
             alert = UIAlertController(title: "Are you sure you want to sign out?", message: "Since you have no funds and did not secure your account, it will be deleted.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
             alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { _ in
-                NotificationCenter.default.post(name: .UserDidSignOut, object: nil)
+
+                guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
+                appDelegate.signOutUser()
             })
         } else {
             alert = UIAlertController(title: "Sign out cancelled", message: "You need to complete at least one of the security steps to sign out.", preferredStyle: .alert)

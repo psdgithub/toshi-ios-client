@@ -16,10 +16,6 @@
 import UIKit
 import SweetUIKit
 
-extension NSNotification.Name {
-    public static let CreateNewUser = NSNotification.Name(rawValue: "CreateNewUser")
-}
-
 open class SignInController: UIViewController {
 
     fileprivate var idAPIClient: IDAPIClient {
@@ -170,15 +166,16 @@ open class SignInController: UIViewController {
         let idClient = IDAPIClient.shared
         idClient.retrieveUser(username: cereal.address) { user in
             if let user = user {
-                ChatAPIClient.shared.registerUser()
                 Cereal.shared = cereal
                 UserDefaults.standard.set(false, forKey: RequiresSignIn)
 
                 user.updateVerificationState(true)
-                TokenUser.createOrUpdateCurrentUser(with: user.asDict)
+                TokenUser.createCurrentUser(with: user.asDict)
+
+                ChatAPIClient.shared.registerUser()
 
                 guard let delegate = UIApplication.shared.delegate as? AppDelegate else { return }
-                delegate.setupSignalService()
+                delegate.signInUser()
 
                 self.navigationController?.dismiss(animated: true, completion: nil)
             } else {

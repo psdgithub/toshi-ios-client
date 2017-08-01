@@ -35,7 +35,7 @@ open class FavoritesController: SweetTableController {
 
     fileprivate lazy var uiDatabaseConnection: YapDatabaseConnection = {
         let database = Yap.sharedInstance.database
-        let dbConnection = database.newConnection()
+        let dbConnection = database!.newConnection()
         dbConnection.beginLongLivedReadTransaction()
 
         return dbConnection
@@ -89,15 +89,27 @@ open class FavoritesController: SweetTableController {
     public init() {
         super.init(style: .plain)
 
+        if TokenUser.current != nil {
+            setupForCurrentUserNotifications()
+        }
+
+        NotificationCenter.default.addObserver(self, selector: #selector(userCreated(_:)), name: .userCreated, object: nil)
+
+        title = "Favorites"
+    }
+
+    @objc fileprivate func userCreated(_ notification: Notification) {
+        setupForCurrentUserNotifications()
+    }
+
+    fileprivate func setupForCurrentUserNotifications() {
         registerTokenContactsDatabaseView()
 
         uiDatabaseConnection.asyncRead { transaction in
             self.mappings.update(with: transaction)
         }
 
-        title = "Favorites"
-
-        registerNotifications()
+        registerDatabaseNotifications()
     }
 
     public required init?(coder _: NSCoder) {
@@ -207,7 +219,7 @@ open class FavoritesController: SweetTableController {
     @discardableResult
     fileprivate func registerTokenContactsDatabaseView() -> Bool {
         // Check if it's already registered.
-        guard Yap.sharedInstance.database.registeredExtension(TokenUser.viewExtensionName) == nil else { return true }
+        guard Yap.sharedInstance.database!.registeredExtension(TokenUser.viewExtensionName) == nil else { return true }
 
         let viewGrouping = YapDatabaseViewGrouping.withObjectBlock { (_, _, _, object) -> String? in
             if (object as? Data) != nil {
@@ -225,7 +237,7 @@ open class FavoritesController: SweetTableController {
 
         let databaseView = YapDatabaseView(grouping: viewGrouping, sorting: viewSorting, versionTag: "1", options: options)
 
-        return Yap.sharedInstance.database.register(databaseView, withName: TokenUser.viewExtensionName)
+        return Yap.sharedInstance.database!.register(databaseView, withName: TokenUser.viewExtensionName)
     }
 
     fileprivate func displayContacts() {
@@ -234,7 +246,7 @@ open class FavoritesController: SweetTableController {
         showOrHideEmptyState()
     }
 
-    fileprivate func registerNotifications() {
+    fileprivate func registerDatabaseNotifications() {
         let notificationController = NotificationCenter.default
         notificationController.addObserver(self, selector: #selector(yapDatabaseDidChange(notification:)), name: .YapDatabaseModified, object: nil)
     }

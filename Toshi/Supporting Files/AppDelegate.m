@@ -1,3 +1,4 @@
+
 #import "AppDelegate.h"
 
 #import "Toshi-Swift.h"
@@ -17,6 +18,7 @@
 #import <SignalServiceKit/OWSIncomingMessageReadObserver.h>
 #import <SignalServiceKit/TSSocketManager.h>
 #import <SignalServiceKit/OWSDispatch.h>
+#import <SignalServiceKit/TSPreferences.h>
 
 #import <AxolotlKit/SessionCipher.h>
 #import "Common.h"
@@ -28,7 +30,7 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 
 @import WebRTC;
 
-@interface AppDelegate ()
+@interface AppDelegate () <TSPreferences>
 
 @property (nonatomic) OWSIncomingMessageReadObserver *incomingMessageReadObserver;
 
@@ -45,7 +47,8 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 @synthesize token = _token;
 @synthesize voipToken = _voipToken;
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
     NSString *tokenChatServiceBaseURL = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"TokenChatServiceBaseURL"];
     [OWSSignalService setBaseURLPath:tokenChatServiceBaseURL];
 
@@ -55,28 +58,22 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     // still want to ensure that any third-party code that uses rand()
     // gets random values.
     srand((unsigned int)time(NULL));
+    [self verifyDBKeysAvailableBeforeBackgroundLaunch];
 
     [Fabric with:@[[Crashlytics class]]];
     
-    [self verifyDBKeysAvailableBeforeBackgroundLaunch];
-
     [self setupBasicAppearance];
-    [self setupTSKitEnv];
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userDidSignOut) name:@"UserDidSignOut" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(createOrRestoreNewUser) name:@"CreateNewUser" object:nil];
-    
-    [TokenUser retrieveCurrentUser];
-    [self configureAndPresentWindow];
-    
-    if (TokenUser.current == nil) {
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:[NSString addressChangeAlertShown]]; //suppress alert for users created >=v1.1.2
-        [[NSUserDefaults standardUserDefaults] synchronize];
-        
-        [self presentSplash];
-    } else {
-        [self createOrRestoreNewUser];
+
+    if ([Yap isCurrentUserDataAccessible]) {
+
+        [TokenUser retrieveCurrentUser];
+
+        [self setupDB];
     }
+
+    [self configureAndPresentWindow];
 
     return YES;
 }
@@ -116,9 +113,16 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     self.window.rootViewController = [[TabBarController alloc] init];
 
     [self.window makeKeyAndVisible];
+
+    if ([Yap isCurrentUserDataAccessible] == false) {
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:[NSString addressChangeAlertShown]]; //suppress alert for users created >=v1.1.2
+        [[NSUserDefaults standardUserDefaults] synchronize];
+
+        [self presentSplash];
+    }
 }
 
-- (void)handleFirstLaunch {
+- (void)showNetworkAlertIfNeeded {
     // To drive this point really home we could show this for every launch instead.
     if (![[NSUserDefaults standardUserDefaults] boolForKey:@"DidShowMoneyAlert"]) {
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Be aware!" message:@"Toshi is running on Testnet. Do not send Ethereum from Mainnet." preferredStyle:UIAlertControllerStyleAlert];
@@ -150,27 +154,31 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     }];
 }
 
-- (void)createOrRestoreNewUser {
+- (void)createNewUser
+{
+    __weak typeof(self)weakSelf = self;
+    [[IDAPIClient shared] registerUserIfNeeded:^{
+
+        typeof(self)strongSelf = weakSelf;
+        [[ChatAPIClient shared] registerUser];
+
+        [strongSelf didCreateUser];
+        [strongSelf setupDB];
+    }];
+}
+
+- (void)signInUser
+{
+    [self showNetworkAlertIfNeeded];
+    [self setupDB];
+}
+
+- (void)setupDB
+{
+    [self setupTSKitEnv];
     [self setupSignalService];
-    
-    if (TokenUser.current == nil) {
-        [[IDAPIClient shared] registerUserIfNeeded:^{
-            [[ChatAPIClient shared] registerUser];
-            [self didCreateUser];
-        }];
-    } else {
-        [[IDAPIClient shared] retrieveUserWithUsername:[TokenUser.current username] completion:^(TokenUser * _Nullable user) {
-            if (user == nil) {
-                [[IDAPIClient shared] registerUserIfNeeded:^{
-                    [[ChatAPIClient shared] registerUser];
-                    [self didCreateUser];
-                }];
-            } else {
-                [[IDAPIClient shared] updateUserIfNeeded:user];
-                [self handleFirstLaunch];
-            }
-        }];
-    }
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"ChatDatabaseCreated" object:nil];
 }
 
 - (void)didCreateUser {
@@ -200,22 +208,31 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 }
 
 - (void)setupSignalService {
+    NSLog(@"Setting up Signal Service");
     // Encryption/Descryption mutates session state and must be synchronized on a serial queue.
     [SessionCipher setSessionCipherDispatchQueue:[OWSDispatch sessionStoreQueue]];
 
+    NSLog(@"Cereal registeres phone number: %@", [Cereal shared].address);//0x96da8ed2da9920ddf504a757febbd9107e6b76df
+
     [[TSStorageManager sharedManager] storePhoneNumber:[[Cereal shared] address]];
+
+    __weak typeof(self)weakSelf = self;
     [[TSAccountManager sharedInstance] ifRegistered:YES runAsync:^{
 
         [TSSocketManager requestSocketOpen];
         RTCInitializeSSL();
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self registerForRemoteNotifications];
+
+            typeof(self)strongSelf = weakSelf;
+            [strongSelf registerForRemoteNotifications];
         });
     }];
 }
 
 - (void)setupTSKitEnv {
+    NSLog(@"Setting up Signal KIT environment");
+
     // ensure this is called from main queue for the first time
     // otherwise app crashes, because of some code path differences between
     // us and Signal app.
@@ -224,8 +241,6 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     self.networkManager = [TSNetworkManager sharedManager];
     self.contactsManager = [[ContactsManager alloc] init];
     
-    [AvatarManager.shared startDownloadContactsAvatars];
-    
     self.contactsUpdater = [ContactsUpdater sharedUpdater];
 
     TSStorageManager *storageManager = [TSStorageManager sharedManager];
@@ -233,7 +248,7 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 
     self.messageSender = [[OWSMessageSender alloc] initWithNetworkManager:self.networkManager storageManager:storageManager contactsManager:self.contactsManager contactsUpdater:self.contactsUpdater];
 
-    TextSecureKitEnv *sharedEnv = [[TextSecureKitEnv alloc] initWithCallMessageHandler:[[EmptyCallHandler alloc] init] contactsManager:self.contactsManager messageSender:self.messageSender notificationsManager:[[SignalNotificationManager alloc] init] preferences:nil];
+    TextSecureKitEnv *sharedEnv = [[TextSecureKitEnv alloc] initWithCallMessageHandler:[[EmptyCallHandler alloc] init] contactsManager:self.contactsManager messageSender:self.messageSender notificationsManager:[[SignalNotificationManager alloc] init] preferences:self];
 
     [TextSecureKitEnv setSharedEnv:sharedEnv];
 
@@ -241,8 +256,13 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     [self.incomingMessageReadObserver startObserving];
 }
 
+- (BOOL)isSendingIdentityApprovalRequired
+{
+    return NO;
+}
+
 - (void)applicationWillResignActive:(UIApplication *)application {
-    [SignalNotificationManager updateApplicationBadgeNumber];
+  //  [SignalNotificationManager updateApplicationBadgeNumber];
     
     if ([TSAccountManager isRegistered]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -261,6 +281,10 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
+    if (Yap.isCurrentUserDataAccessible == false) {
+        return;
+    }
+
     [[TSAccountManager sharedInstance] ifRegistered:YES runAsync:^{
         // We're double checking that the app is active, to be sure since we
         // can't verify in production env due to code
@@ -313,8 +337,8 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     self.screenProtectionWindow.hidden = NO;
 }
 
-- (void)deactivateScreenProtection {
-    
+- (void)deactivateScreenProtection
+{
     [UIView animateWithDuration:0.3 animations:^{
         self.screenProtectionWindow.alpha = 0;
     } completion:^(BOOL finished) {
@@ -397,15 +421,17 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 }
 
 - (void)updateRemoteNotificationCredentials {
+    NSLog(@"\n||--------------------\n||\n|| --- Account is registered: %@ \n||\n||--------------------\n\n", @([TSAccountManager isRegistered]));
+
     [[TSAccountManager sharedInstance] registerForPushNotificationsWithPushToken:self.token voipToken:self.voipToken success:^{
-        NSLog(@"TOKEN: chat PN register - SUCCESS: token: %@, voip: %@", self.token, self.voipToken);
+        NSLog(@"\n\n||------- \n||\n|| - TOKEN: chat PN register - SUCCESS: token: %@,\n|| - voip: %@\n||\n||------- \n", self.token, self.voipToken);
 
         [[EthereumAPIClient shared] registerForMainNetworkPushNotifications];
 
         [[EthereumAPIClient shared] registerForSwitchedNetworkPushNotificationsIfNeededWithCompletion:nil];
 
     } failure:^(NSError *error) {
-        NSLog(@"TOKEN: chat PN register - FAILURE: %@", error.localizedDescription);
+        NSLog(@"\n\n||------- \n|| - TOKEN: chat PN register - FAILURE: %@\n||------- \n", error.localizedDescription);
     }];
 }
 
@@ -434,11 +460,16 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     completionHandler();
 }
 
-- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
+{
+    __weak typeof(self)weakSelf = self;
 
     [SignalNotificationHandler handleMessage:userInfo completion:^(UIBackgroundFetchResult result) {
+
+        typeof(self)strongSelf = weakSelf;
+
         if (result == UIBackgroundFetchResultNewData) {
-            [self.messageFetcherJob runAsync];
+            [strongSelf.messageFetcherJob runAsync];
         }
 
         completionHandler(result);

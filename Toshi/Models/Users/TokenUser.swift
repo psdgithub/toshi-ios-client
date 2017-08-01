@@ -15,9 +15,12 @@
 
 import Foundation
 import SweetSwift
+import KeychainSwift
 
 public extension NSNotification.Name {
     public static let currentUserUpdated = NSNotification.Name(rawValue: "currentUserUpdated")
+    public static let userCreated = NSNotification.Name(rawValue: "userCreated")
+    public static let userLoggedIn = NSNotification.Name(rawValue: "userLoggedIn")
 }
 
 public typealias UserInfo = (address: String, paymentAddress: String?, avatarPath: String?, name: String?, username: String?, isLocal: Bool)
@@ -42,7 +45,7 @@ public class TokenUser: NSObject, NSCoding {
     static let viewExtensionName = "TokenContactsDatabaseViewExtensionName"
     static let favoritesCollectionKey: String = "TokenContacts"
 
-    fileprivate static let storedUserKey = "StoredUser"
+    public static let storedUserKey = "StoredUser"
 
     public static let storedContactKey = "storedContactKey"
 
@@ -210,9 +213,18 @@ public class TokenUser: NSObject, NSCoding {
         save()
     }
 
+    public static func createCurrentUser(with json: [String: Any]) {
+        guard let newUser = TokenUser(json: json) as TokenUser? else { return }
+        current = newUser
+        Yap.sharedInstance.setupForNewUser(with: newUser.address)
+        NotificationCenter.default.post(name: .userCreated, object: nil)
+    }
+
     public static func createOrUpdateCurrentUser(with json: [String: Any]) {
         guard current != nil else {
             current = TokenUser(json: json)
+            NotificationCenter.default.post(name: .userCreated, object: nil)
+            
             return
         }
 
@@ -221,6 +233,8 @@ public class TokenUser: NSObject, NSCoding {
 
     public static func retrieveCurrentUser() {
         current = retrieveCurrentUserFromStore()
+
+        NotificationCenter.default.post(name: .userCreated, object: nil)
     }
 
     private func setupNotifications() {
@@ -248,7 +262,7 @@ public class TokenUser: NSObject, NSCoding {
 
     private static func retrieveCurrentUserFromStore() -> TokenUser? {
         var user: TokenUser?
-
+        
         if _current == nil, let userData = (Yap.sharedInstance.retrieveObject(for: TokenUser.storedUserKey) as? Data),
             let deserialised = (try? JSONSerialization.jsonObject(with: userData, options: [])),
             var json = deserialised as? [String: Any] {

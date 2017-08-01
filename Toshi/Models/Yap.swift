@@ -128,16 +128,14 @@ public final class Yap: NSObject, Singleton {
 
     public func wipeStorage() {
         if TokenUser.current?.verified == false {
-            do {
-                KeychainSwift().delete(UserDB.password)
-                print("\n|| Deleted DB password from keychain\n||\n||------------------------------------")
+            KeychainSwift().delete(UserDB.password)
+            print("\n|| Deleted DB password from keychain\n||\n||------------------------------------")
 
-                print("\n||\n|| --- User not verified, deleting DB file \n||\n||")
-                
-                self.deleteFileIfNeeded(at: UserDB.dbFilePath)
-                self.deleteFileIfNeeded(at: UserDB.walFilePath)
-                self.deleteFileIfNeeded(at: UserDB.shmFilePath)
-            } catch {}
+            print("\n||\n|| --- User not verified, deleting DB file \n||\n||")
+
+            self.deleteFileIfNeeded(at: UserDB.dbFilePath)
+            self.deleteFileIfNeeded(at: UserDB.walFilePath)
+            self.deleteFileIfNeeded(at: UserDB.shmFilePath)
 
             return
         }

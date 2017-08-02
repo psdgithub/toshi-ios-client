@@ -26,6 +26,7 @@
 #import <Fabric/Fabric.h>
 #import <Crashlytics/Crashlytics.h>
 
+NSString *const LaunchedBefore = @"LaunchedBefore";
 NSString *const RequiresSignIn = @"RequiresSignIn";
 
 @import WebRTC;
@@ -74,6 +75,14 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     [self configureAndPresentWindow];
 
     return YES;
+}
+
+- (void)handleFirstLaunchIfNeeded
+{
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:LaunchedBefore]) {
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:LaunchedBefore];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    }
 }
 
 + (NSString *)documentsPath
@@ -231,6 +240,11 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     }];
 }
 
+- (BOOL)isFirstLaunch
+{
+    return  [[NSUserDefaults standardUserDefaults] boolForKey:LaunchedBefore] == NO;
+}
+
 - (void)setupTSKitEnv {
     NSLog(@"Setting up Signal KIT environment");
 
@@ -245,7 +259,7 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     self.contactsUpdater = [ContactsUpdater sharedUpdater];
 
     TSStorageManager *storageManager = [TSStorageManager sharedManager];
-    [storageManager setupForAccountName:TokenUser.current.address];
+    [storageManager setupForAccountName:TokenUser.current.address isFirstLaunch:[self isFirstLaunch]];
 
     self.messageSender = [[OWSMessageSender alloc] initWithNetworkManager:self.networkManager storageManager:storageManager contactsManager:self.contactsManager contactsUpdater:self.contactsUpdater];
 
@@ -255,6 +269,8 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 
     self.incomingMessageReadObserver = [[OWSIncomingMessageReadObserver alloc] initWithStorageManager:storageManager messageSender:self.messageSender];
     [self.incomingMessageReadObserver startObserving];
+
+    [self handleFirstLaunchIfNeeded];
 }
 
 - (BOOL)isSendingIdentityApprovalRequired

@@ -27,7 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (BOOL)isDatabasePasswordAccessible;
 
-- (void)setupDatabase;
+- (void)setupForAccountName:(NSString *)accountName;
+
 - (void)deleteThreadsAndMessages;
 - (void)resetSignalStorage;
 

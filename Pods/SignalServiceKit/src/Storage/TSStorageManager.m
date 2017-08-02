@@ -200,9 +200,21 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
     };
 }
 
-- (void)setupForAccountName:(NSString *)accountName
+- (void)setupForAccountName:(NSString *)accountName isFirstLaunch:(BOOL)isFirstLaunch
 {
     self.accountName = [accountName copy];
+
+    if (isFirstLaunch) {
+
+        NSError *keyFetchError;
+        NSString *previousVersionDBPassword = [SAMKeychain passwordForService:keychainService account:keychainDBPassAccount error:&keyFetchError];
+        if (previousVersionDBPassword) {
+
+            NSError *error;
+            [SAMKeychain setPassword:previousVersionDBPassword forService:self.accountName account:keychainDBPassAccount error:&error];
+        }
+    }
+
     [self setupDatabase];
 }
 

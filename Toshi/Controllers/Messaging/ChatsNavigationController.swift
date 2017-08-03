@@ -86,6 +86,11 @@ public class ChatsNavigationController: UINavigationController {
         self.pushViewController(messagesController, animated: animated)
     }
 
+    public func openThread(_ thread: TSThread, animated: Bool) {
+        let messagesController = ChatController(thread: thread)
+        self.pushViewController(messagesController, animated: animated)
+    }
+
     public override func pushViewController(_ viewController: UIViewController, animated: Bool) {
         super.pushViewController(viewController, animated: animated)
 

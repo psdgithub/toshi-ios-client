@@ -42,6 +42,8 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 @property (nonatomic, copy, readwrite) NSString *token;
 @property (nonatomic) NSString *voipToken;
 
+@property (nonatomic, assign) BOOL registeredNewUser;
+
 @end
 
 @implementation AppDelegate
@@ -168,13 +170,17 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 - (void)createNewUser
 {
     __weak typeof(self)weakSelf = self;
-    [[IDAPIClient shared] registerUserIfNeeded:^{
-        typeof(self)strongSelf = weakSelf;
+    [[IDAPIClient shared] registerUserIfNeeded:^(UserRegisterStatus status){
 
-        [[ChatAPIClient shared] registerUser];
+        if (status != UserRegisterStatusFailed) {
+            typeof(self)strongSelf = weakSelf;
+            strongSelf.registeredNewUser = (status == UserRegisterStatusRegistered);
 
-        [strongSelf didCreateUser];
-        [strongSelf setupDB];
+            [[ChatAPIClient shared] registerUser];
+
+            [strongSelf didCreateUser];
+            [strongSelf setupDB];
+        }
     }];
 }
 
@@ -430,12 +436,18 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 - (void)updateRemoteNotificationCredentials {
     NSLog(@"\n||--------------------\n||\n|| --- Account is registered: %@ \n||\n||--------------------\n\n", @([TSAccountManager isRegistered]));
 
+    __weak typeof(self)weakSelf = self;
     [[TSAccountManager sharedInstance] registerForPushNotificationsWithPushToken:self.token voipToken:self.voipToken success:^{
         NSLog(@"\n\n||------- \n||\n|| - TOKEN: chat PN register - SUCCESS: token: %@,\n|| - voip: %@\n||\n||------- \n", self.token, self.voipToken);
 
         [[EthereumAPIClient shared] registerForMainNetworkPushNotifications];
 
         [[EthereumAPIClient shared] registerForSwitchedNetworkPushNotificationsIfNeededWithCompletion:nil];
+
+        typeof(self)strongSelf = weakSelf;
+        if (strongSelf.registeredNewUser) {
+            [ChatsInteractor triggerBotGreeting];
+        }
 
     } failure:^(NSError *error) {
         NSLog(@"\n\n||------- \n|| - TOKEN: chat PN register - FAILURE: %@\n||------- \n", error.localizedDescription);

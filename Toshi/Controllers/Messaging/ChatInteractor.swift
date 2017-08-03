@@ -22,7 +22,9 @@ protocol ChatInteractorOutput: class {
     func didHandleSofaMessage(with buttons: [SofaMessage.Button], showKeyboard: Bool?)
 }
 
-final class ChatsInteractor {
+class ChatsInteractor: NSObject {
+
+    fileprivate static let ToshiBotAddress = "0xdc1eb58ae581c2e70dd5af5c454851fa2b24acd7"
 
     fileprivate var output: ChatInteractorOutput?
     private(set) var thread: TSThread
@@ -274,6 +276,14 @@ final class ChatsInteractor {
         }
 
         return thread!
+    }
+
+    static func triggerBotGreeting() {
+        let botThread = ChatsInteractor.getOrCreateThread(for: ToshiBotAddress)
+
+        DispatchQueue.main.asyncAfter(seconds: 0.5) {
+            Navigator.openThread(botThread, animated: true)
+        }
     }
 
     fileprivate static func requestContactsRefresh() {

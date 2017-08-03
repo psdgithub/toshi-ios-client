@@ -50,7 +50,7 @@ public final class Yap: NSObject, Singleton {
 
     public static let sharedInstance = Yap()
     public static var isCurrentUserDataAccessible: Bool {
-        return KeychainSwift().getData(UserDB.password) != nil
+        return FileManager.default.fileExists(atPath: UserDB.dbFilePath)
     }
 
     private override init() {

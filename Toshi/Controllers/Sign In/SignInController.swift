@@ -179,7 +179,8 @@ open class SignInController: UIViewController {
 
                 self.navigationController?.dismiss(animated: true, completion: nil)
             } else {
-                print("No such user")
+                let alert = UIAlertController.dismissableAlert(title: Localized("No such user"))
+                Navigator.presentModally(alert)
             }
         }
     }

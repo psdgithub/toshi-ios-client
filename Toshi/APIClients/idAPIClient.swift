@@ -18,6 +18,10 @@ import AwesomeCache
 import SweetFoundation
 import Teapot
 
+@objc public enum UserRegisterStatus: Int {
+    case existing = 0, registered, failed
+}
+
 public class IDAPIClient: NSObject, CacheExpiryDefault {
     public static let shared: IDAPIClient = IDAPIClient()
 
@@ -119,9 +123,12 @@ public class IDAPIClient: NSObject, CacheExpiryDefault {
         updateUser(migratedUser.asDict) { _, _ in }
     }
 
-    public func registerUserIfNeeded(_ success: @escaping (() -> Void)) {
+    public func registerUserIfNeeded(_ success: @escaping ((UserRegisterStatus) -> Void)) {
         retrieveUser(username: Cereal.shared.address) { user in
-            guard user == nil else { return }
+            guard user == nil else {
+                success(.existing)
+                return
+            }
 
             self.fetchTimestamp { timestamp in
                 let cereal = Cereal.shared
@@ -148,10 +155,11 @@ public class IDAPIClient: NSObject, CacheExpiryDefault {
 
                             print("\n||--------\n||\n||--- Created NEWS USER with address: \(cereal.address)\n||\n||---------\n")
 
-                            success()
+                            success(.registered)
                         case .failure(let json, _, let error):
                             print(error)
                             print(json ?? "")
+                            success(.failed)
                         }
                     }
                 }

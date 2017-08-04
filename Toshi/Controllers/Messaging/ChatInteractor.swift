@@ -22,7 +22,7 @@ protocol ChatInteractorOutput: class {
     func didHandleSofaMessage(with buttons: [SofaMessage.Button], showKeyboard: Bool?)
 }
 
-class ChatsInteractor: NSObject {
+final class ChatsInteractor: NSObject {
 
     fileprivate static let ToshiBotAddress = "0xdc1eb58ae581c2e70dd5af5c454851fa2b24acd7"
 

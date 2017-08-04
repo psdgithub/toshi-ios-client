@@ -53,7 +53,7 @@ public class ChatAPIClient: NSObject {
         }
     }
 
-    public func registerUser() {
+    public func registerUser(completion: ((Bool) -> Void)? = nil) {
         fetchTimestamp { timestamp in
             let cereal = Cereal.shared
             let parameters = UserBootstrapParameter()
@@ -78,10 +78,12 @@ public class ChatAPIClient: NSObject {
 
                     TSStorageManager.storeServerToken(parameters.password, signalingKey: parameters.signalingKey)
                     print("Successfully registered chat user with address: \(cereal.address)")
+                    completion?(true)
                 case .failure(let json, let response, let error):
                     print(json ?? "")
                     print(response)
                     print(error)
+                    completion?(false)
                 }
             }
         }

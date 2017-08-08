@@ -56,42 +56,16 @@ public final class Yap: NSObject, Singleton {
     private override init() {
         super.init()
 
-        let options = YapDatabaseOptions()
-        options.corruptAction = .fail
-
-        let keychain = KeychainSwift()
-        keychain.synchronizable = false
-
         if Yap.isCurrentUserDataAccessible {
-            options.cipherKeyBlock = {
-                let keychain = KeychainSwift()
-                keychain.synchronizable = false
-
-                return keychain.getData(UserDB.password)!
-            }
-
-            database = YapDatabase(path: UserDB.dbFilePath, options: options)
-
-            print("\n\n------ ------ ------ \n *** DATABASE CREATED *** \n------ ------ ------ \n\n")
-
-            let url = NSURL(fileURLWithPath: UserDB.dbFilePath)
-            try! url.setResourceValue(false, forKey: .isUbiquitousItemKey)
-            try! url.setResourceValue(true, forKey: .isExcludedFromBackupKey)
-
-            mainConnection = database?.newConnection()
+            createDBForCurrentUser()
         }
     }
 
-     public func setupForNewUser(with address: String) {
-        let options = YapDatabaseOptions()
-        options.corruptAction = .fail
+    public func setupForNewUser(with address: String) {
+        useBackedDBIfNeeded()
 
         let keychain = KeychainSwift()
         keychain.synchronizable = false
-
-        print(try! FileManager.default.contentsOfDirectory(atPath: UserDB.documentsUrl.path))
-
-        useBackedDBIfNeeded()
 
         var dbPassowrd: Data
         if let loggedData = keychain.getData(UserDB.password) as Data? {
@@ -104,22 +78,7 @@ public final class Yap: NSObject, Singleton {
         }
         keychain.set(dbPassowrd, forKey: UserDB.password, withAccess: .accessibleAfterFirstUnlockThisDeviceOnly)
 
-        options.cipherKeyBlock = {
-            let keychain = KeychainSwift()
-            keychain.synchronizable = false
-
-            return keychain.getData(UserDB.password)!
-        }
-
-        database = YapDatabase(path: UserDB.dbFilePath, options: options)
-
-        print("\n||------------------- \n||\n||\n|| *** DATABASE CREATED for user with address: \(address) *** \n||\n||\n||-------------------\n")
-
-        let url = NSURL(fileURLWithPath: UserDB.dbFilePath)
-        try! url.setResourceValue(false, forKey: .isUbiquitousItemKey)
-        try! url.setResourceValue(true, forKey: .isExcludedFromBackupKey)
-
-        mainConnection = database?.newConnection()
+        createDBForCurrentUser()
 
         self.insert(object: TokenUser.current?.JSONData, for: TokenUser.storedUserKey)
 
@@ -141,6 +100,29 @@ public final class Yap: NSObject, Singleton {
         }
 
         backupUserDBFile()
+    }
+
+    fileprivate func createDBForCurrentUser() {
+        let options = YapDatabaseOptions()
+        options.corruptAction = .fail
+
+        let keychain = KeychainSwift()
+        keychain.synchronizable = false
+
+        options.cipherKeyBlock = {
+            let keychain = KeychainSwift()
+            keychain.synchronizable = false
+
+            return keychain.getData(UserDB.password)!
+        }
+
+        database = YapDatabase(path: UserDB.dbFilePath, options: options)
+        
+        let url = NSURL(fileURLWithPath: UserDB.dbFilePath)
+        try! url.setResourceValue(false, forKey: .isUbiquitousItemKey)
+        try! url.setResourceValue(true, forKey: .isExcludedFromBackupKey)
+
+        mainConnection = database?.newConnection()
     }
 
     fileprivate func createBackupDirectoryIfNeeded() {
@@ -172,9 +154,7 @@ public final class Yap: NSObject, Singleton {
 
     fileprivate func deleteFileIfNeeded(at path: String) {
         if FileManager.default.fileExists(atPath: path) {
-            do {
-                try FileManager.default.removeItem(atPath: path)
-            } catch {}
+            try? FileManager.default.removeItem(atPath: path)
         }
     }
 

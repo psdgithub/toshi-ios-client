@@ -277,9 +277,8 @@ final class ChatsInteractor {
     }
 
     fileprivate static func requestContactsRefresh() {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-
-        appDelegate.contactsManager.refreshContacts()
+        let appDelegate = UIApplication.shared.delegate as? AppDelegate
+        appDelegate?.contactsManager.refreshContacts()
     }
 
     func asyncProcess(signals: [SSignal]) {

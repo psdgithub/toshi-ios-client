@@ -77,14 +77,6 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     return YES;
 }
 
-- (void)handleFirstLaunchIfNeeded
-{
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:LaunchedBefore]) {
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:LaunchedBefore];
-        [[NSUserDefaults standardUserDefaults] synchronize];
-    }
-}
-
 + (NSString *)documentsPath
 {
     static NSString *path = nil;
@@ -270,7 +262,7 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
     self.incomingMessageReadObserver = [[OWSIncomingMessageReadObserver alloc] initWithStorageManager:storageManager messageSender:self.messageSender];
     [self.incomingMessageReadObserver startObserving];
 
-    [self handleFirstLaunchIfNeeded];
+    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:LaunchedBefore];
 }
 
 - (BOOL)isSendingIdentityApprovalRequired

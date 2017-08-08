@@ -546,21 +546,12 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
 
 - (void)deletePasswordFromKeychain
 {
-    // [SAMKeychain deletePasswordForService:keychainService account:keychainDBPassAccount];
+    [SAMKeychain deletePasswordForService:self.accountName account:keychainDBPassAccount];
 }
 
 - (NSString *)backupDatabasePath
 {
     return [[self backupDirectoryPath] stringByAppendingFormat:@"/Signal-%@.sqlite", self.accountName];
-}
-
-- (void)deleteDatabaseFile
-{
-    NSError *error;
-    BOOL success = [[NSFileManager defaultManager] removeItemAtPath:[self dbPath] error:&error];
-    if (error) {
-        DDLogError(@"Failed to delete database: %@", error.description);
-    }
 }
 
 - (void)backupDataBaseFile

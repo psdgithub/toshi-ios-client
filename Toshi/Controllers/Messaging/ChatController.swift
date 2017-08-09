@@ -752,9 +752,9 @@ extension ChatController: ChatInteractorOutput {
         DispatchQueue.main.async {
             if let showKeyboard = showKeyboard {
                 if showKeyboard == true {
-                    // A small delay is used here to make the inputField be able to become first responder
-                     DispatchQueue.main.asyncAfter(seconds: 0.1) {
-                        self.textInputView.inputField.becomeFirstResponder()
+                     //The keyboard is shown after a delay because the controller is busy loading the chat
+                     DispatchQueue.main.asyncAfter(seconds: 1.0) {
+                        self.showKeyboardIfViewIsShown()
                      }
                 } else {
                     self.textInputView.inputField.resignFirstResponder()
@@ -762,6 +762,12 @@ extension ChatController: ChatInteractorOutput {
             }
 
             self.buttons = buttons
+        }
+    }
+
+    func showKeyboardIfViewIsShown() {
+        if isVisible {
+            textInputView.inputField.becomeFirstResponder()
         }
     }
 

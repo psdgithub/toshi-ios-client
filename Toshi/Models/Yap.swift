@@ -71,9 +71,6 @@ public final class Yap: NSObject, Singleton {
         if let loggedData = keychain.getData(UserDB.password) as Data? {
             dbPassowrd = loggedData
         } else {
-            if keychain.getData(address) != nil {
-                print("\n||----------------\n||\n|| Retrieving DB Password for address: \(address) \n||\n||----------------")
-            }
            dbPassowrd = keychain.getData(address) ?? Randomness.generateRandomBytes(60).base64EncodedString().data(using: .utf8)!
         }
         keychain.set(dbPassowrd, forKey: UserDB.password, withAccess: .accessibleAfterFirstUnlockThisDeviceOnly)
@@ -88,9 +85,6 @@ public final class Yap: NSObject, Singleton {
     public func wipeStorage() {
         if TokenUser.current?.verified == false {
             KeychainSwift().delete(UserDB.password)
-            print("\n|| Deleted DB password from keychain\n||\n||------------------------------------")
-
-            print("\n||\n|| --- User not verified, deleting DB file \n||\n||")
 
             self.deleteFileIfNeeded(at: UserDB.dbFilePath)
             self.deleteFileIfNeeded(at: UserDB.walFilePath)
@@ -139,16 +133,7 @@ public final class Yap: NSObject, Singleton {
 
     fileprivate func useBackedDBIfNeeded() {
         if TokenUser.current != nil, FileManager.default.fileExists(atPath: UserDB.Backup.dbFilePath) {
-            do {
-                print("\n|| --------------------\n||\n|| --- Using Backup: DB file path: \(UserDB.Backup.dbFilePath)\n||\n||")
-                print("\n|| --- Item moving ... \n|| --- Content of  backed path for user: \(try FileManager.default.contentsOfDirectory(atPath: UserDB.Backup.directoryPath))\n||")
-
-                try FileManager.default.moveItem(atPath: UserDB.Backup.dbFilePath, toPath: UserDB.dbFilePath)
-
-                print("\n|| --- Item moved ... \n|| --- Content of  backed path for user: \(try FileManager.default.contentsOfDirectory(atPath: UserDB.Backup.directoryPath))\n||\n|| --------------------")
-            } catch {
-                print("\n|| --- Something went wrong while moving to BACKUP PATH\n||\n||----------------\n||\n")
-            }
+            try? FileManager.default.moveItem(atPath: UserDB.Backup.dbFilePath, toPath: UserDB.dbFilePath)
         }
     }
 
@@ -161,27 +146,17 @@ public final class Yap: NSObject, Singleton {
     fileprivate func backupUserDBFile() {
         guard let user = TokenUser.current as TokenUser? else { return }
 
-        print("\n||------------------------------------\n|| Wiping DB file for user: \(user.username)\n||")
-
         deleteFileIfNeeded(at: UserDB.walFilePath)
         deleteFileIfNeeded(at: UserDB.shmFilePath)
 
         let keychain = KeychainSwift()
         let currentPassword = keychain.getData(UserDB.password)!
 
-        print("\n|| Current user DB password: \(currentPassword.base64EncodedString())\n||")
         keychain.set(currentPassword, forKey: user.address)
-        print("\n|| Setting DB password for key: \(user.address)")
 
-        do {
-            print("\n||\n|| --- Backup DB path for user: \(UserDB.Backup.dbFilePath)\n||\n||")
-            print("\n|| --- Storage being wiped...\n||Content of  backed path for user: \(try FileManager.default.contentsOfDirectory(atPath: UserDB.Backup.directoryPath))\n||")
-            try FileManager.default.moveItem(atPath: UserDB.dbFilePath, toPath: UserDB.Backup.dbFilePath)
-            print("\n||\n|| --- Storage wiped...\n||Content of  backed path for user: \(try FileManager.default.contentsOfDirectory(atPath: UserDB.Backup.directoryPath))\n||")
-        } catch {}
+        try? FileManager.default.moveItem(atPath: UserDB.dbFilePath, toPath: UserDB.Backup.dbFilePath)
 
         KeychainSwift().delete(UserDB.password)
-        print("\n|| Deleted DB password from keychain\n||\n||------------------------------------")
     }
 
     /// Insert a object into the database using the main thread default connection.

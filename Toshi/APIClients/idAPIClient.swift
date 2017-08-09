@@ -146,8 +146,6 @@ public class IDAPIClient: NSObject, CacheExpiryDefault {
 
                             TokenUser.createCurrentUser(with: json)
 
-                            print("\n||--------\n||\n||--- Created NEWS USER with address: \(cereal.address)\n||\n||---------\n")
-
                             success()
                         case .failure(let json, _, let error):
                             print(error)

@@ -67,23 +67,21 @@ public class ChatAPIClient: NSObject {
             let fields: [String: String] = ["Token-ID-Address": cereal.address, "Token-Signature": signature, "Token-Timestamp": String(timestamp)]
             let requestParameter = RequestParameter(payload)
 
-            DispatchQueue.global(qos: .userInitiated).async {
-                self.teapot.put(path, parameters: requestParameter, headerFields: fields) { result in
-                    switch result {
-                    case .success(_, let response):
-                        guard response.statusCode == 204 else {
-                            print("Could not register user. Status code \(response.statusCode)")
+            self.teapot.put(path, parameters: requestParameter, headerFields: fields) { result in
+                switch result {
+                case .success(_, let response):
+                    guard response.statusCode == 204 else {
+                        print("Could not register user. Status code \(response.statusCode)")
 
-                            return
-                        }
-
-                        TSStorageManager.storeServerToken(parameters.password, signalingKey: parameters.signalingKey)
-                        print("Successfully registered chat user with address: \(cereal.address)")
-                    case .failure(let json, let response, let error):
-                        print(json ?? "")
-                        print(response)
-                        print(error)
+                        return
                     }
+
+                    TSStorageManager.storeServerToken(parameters.password, signalingKey: parameters.signalingKey)
+                    print("Successfully registered chat user with address: \(cereal.address)")
+                case .failure(let json, let response, let error):
+                    print(json ?? "")
+                    print(response)
+                    print(error)
                 }
             }
         }

@@ -1,33 +1,6 @@
 import Foundation
 import UIKit
 
-typealias MessageAction = ((MessageButtonModel.MessageType?) -> Void)
-
-struct MessageButtonModel {
-    let type: MessageType
-    let title: String
-    let icon: String
-
-    enum MessageType {
-        case approve
-        case decline
-    }
-
-    static var approve: MessageButtonModel {
-        return MessageButtonModel(type: .approve, title: "Approve", icon: "approve")
-    }
-
-    static var decline: MessageButtonModel {
-        return MessageButtonModel(type: .decline, title: "Decline", icon: "decline")
-    }
-}
-
-enum Status {
-    case positive(String)
-    case negative(String)
-    case neutral(String)
-}
-
 enum MessageType {
     case simple
     case image
@@ -57,9 +30,7 @@ struct MessageModel {
         }
     }
 
-    var buttonModels: [MessageButtonModel]?
-    var status: Status?
-    var isActionable: Bool?
+    var isActionable: Bool
     var signalMessage: TSMessage?
     var sofaWrapper: SofaWrapper?
 
@@ -88,7 +59,7 @@ struct MessageModel {
 
         if message.sofaWrapper?.type == .paymentRequest {
             type = .paymentRequest
-            buttonModels = message.isOutgoing ? nil : [.approve, .decline]
+            isActionable = true
 
             fiatValueString = message.fiatValueString
             ethereumValueString = message.ethereumValueString
@@ -100,7 +71,7 @@ struct MessageModel {
 
         } else if message.sofaWrapper?.type == .payment {
             type = .payment
-            buttonModels = nil
+            isActionable = false
 
             fiatValueString = message.fiatValueString
             ethereumValueString = message.ethereumValueString
@@ -112,19 +83,10 @@ struct MessageModel {
 
         } else if message.image != nil {
             type = .image
-            buttonModels = nil
+            isActionable = false
         } else {
             type = .simple
-            buttonModels = nil
+            isActionable = false
         }
-
-        status = nil
-
-        isActionable = buttonModels != nil
-    }
-
-    var imageOnly: Bool {
-        guard let text = self.text else { return image != nil }
-        return image != nil && text.isEmpty
     }
 }

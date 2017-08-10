@@ -36,7 +36,7 @@ PODS:
   - Mantle (2.1.0):
     - Mantle/extobjc (= 2.1.0)
   - Mantle/extobjc (2.1.0)
-  - pop (1.0.9)
+  - pop (1.0.10)
   - ProtocolBuffers (1.9.11)
   - SAMKeychain (1.5.2)
   - SignalServiceKit (0.9.0):
@@ -113,7 +113,7 @@ DEPENDENCIES:
   - Crashlytics
   - Fabric
   - pop
-  - SignalServiceKit (from `https://github.com/toshiapp/SignalServiceKit.git`, commit `d8c6931`)
+  - SignalServiceKit (from `https://github.com/toshiapp/SignalServiceKit.git`, commit `3820816d116875e417df478880ba5825c7f28c18`)
   - SocketRocket (from `https://github.com/facebook/SocketRocket.git`)
   - SSignalKit
   - SwiftLint
@@ -122,17 +122,17 @@ EXTERNAL SOURCES:
   AxolotlKit:
     :git: https://github.com/WhisperSystems/SignalProtocolKit.git
   SignalServiceKit:
-    :commit: d8c6931
+    :commit: 3820816d116875e417df478880ba5825c7f28c18
     :git: https://github.com/toshiapp/SignalServiceKit.git
   SocketRocket:
     :git: https://github.com/facebook/SocketRocket.git
 
 CHECKOUT OPTIONS:
   AxolotlKit:
-    :commit: f8f44d143bffd38e8470fdca0db7adf73a844956
+    :commit: 6e9d5e8c3dc87e397b4b7485172507b0990a22dd
     :git: https://github.com/WhisperSystems/SignalProtocolKit.git
   SignalServiceKit:
-    :commit: d8c6931
+    :commit: 3820816d116875e417df478880ba5825c7f28c18
     :git: https://github.com/toshiapp/SignalServiceKit.git
   SocketRocket:
     :commit: 877ac7438be3ad0b45ef5ca3969574e4b97112bf
@@ -141,14 +141,14 @@ CHECKOUT OPTIONS:
 SPEC CHECKSUMS:
   '25519': dc4bad7e2dbcbf1efa121068a705a44cd98c80fc
   AFNetworking: 5e0e199f73d8626b11e79750991f5d173d1f8b67
-  AxolotlKit: a9530d6835baae0f204b1f6b9dd79b7901176f0d
+  AxolotlKit: ba0ab24b879d34559a68e1270b079cc9bd7b3417
   CocoaLumberjack: aa9dcab71bdf9eaf2a63bbd9ddc87863efe45457
   Crashlytics: 79e236942ca1e7fc641df1feb9a275360a78ab6a
   Fabric: 5911403591946b8228ab1c51d98f1d7137e863c6
   HKDFKit: c058305d6f64b84f28c50bd7aa89574625bcb62a
   libPhoneNumber-iOS: f721ae4d5854bce60934f9fb9b0b28e8e68913cb
   Mantle: 2fa750afa478cd625a94230fbf1c13462f29395b
-  pop: f667631a5108a2e60d9e8797c9b32ddaf2080bce
+  pop: 82ca6b068ce9278fd350fd9dd09482a0ce9492e6
   ProtocolBuffers: d509225eb2ea43d9582a59e94348fcf86e2abd65
   SAMKeychain: 1865333198217411f35327e8da61b43de79b635b
   SignalServiceKit: a3a0990c8de0c1edfb78a81fb98fe97c973f18d8
@@ -160,6 +160,6 @@ SPEC CHECKSUMS:
   UnionFind: c33be5adb12983981d6e827ea94fc7f9e370f52d
   YapDatabase: cd911121580ff16675f65ad742a9eb0ab4d9e266
 
-PODFILE CHECKSUM: 85789092bca06334bde545a5667b56b0b71a5499
+PODFILE CHECKSUM: 22aaa1cdd1ff3f9c29d2cc3ec1c55764161a8ab8
 
 COCOAPODS: 1.2.1

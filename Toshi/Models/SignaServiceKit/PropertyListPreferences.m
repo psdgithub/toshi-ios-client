@@ -6,7 +6,7 @@
 #import "TSStorageHeaders.h"
 #import <CocoaLumberjack/CocoaLumberjack.h>
 #import <SignalServiceKit/Asserts.h>
-#import <SignalServiceKit/Constraints.h>"
+#import <SignalServiceKit/Constraints.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

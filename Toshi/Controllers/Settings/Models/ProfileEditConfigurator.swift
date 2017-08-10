@@ -32,11 +32,11 @@ final class ProfileEditConfigurator {
         cell.switchControl.isHidden = item.type != .visibility
         cell.textField.isHidden = item.type == .visibility
 
-        cell.delegate = self
+        cell.updater = self
     }
 }
 
-extension ProfileEditConfigurator: InputCellDelegate {
+extension ProfileEditConfigurator: InputCellUpdater {
 
     func inputDidUpdate(_ detailText: String?, _ switchMode: Bool) {
         item.update(detailText, switchMode)

@@ -24,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 NSString *const TSStorageManagerExceptionNameDatabasePasswordInaccessible = @"TSStorageManagerExceptionNameDatabasePasswordInaccessible";
 NSString *const TSStorageManagerExceptionNameDatabasePasswordInaccessibleWhileBackgrounded =
-    @"TSStorageManagerExceptionNameDatabasePasswordInaccessibleWhileBackgrounded";
+@"TSStorageManagerExceptionNameDatabasePasswordInaccessibleWhileBackgrounded";
 NSString *const TSStorageManagerExceptionNameDatabasePasswordUnwritable = @"TSStorageManagerExceptionNameDatabasePasswordUnwritable";
 NSString *const TSStorageManagerExceptionNameNoDatabase = @"TSStorageManagerExceptionNameNoDatabase";
 
@@ -35,6 +35,8 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
 @interface TSStorageManager ()
 
 @property (nullable, atomic) YapDatabase *database;
+
+@property (nonatomic, copy) NSString *accountName;
 
 @end
 
@@ -99,7 +101,7 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
     static TSStorageManager *sharedManager = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedManager = [[self alloc] initDefault];
+        sharedManager = [[self alloc] init];
 #if TARGET_OS_IPHONE
         [sharedManager protectSignalFiles];
 #endif
@@ -107,46 +109,53 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
     return sharedManager;
 }
 
-- (instancetype)initDefault
+- (void)loadBackupIfNeeded
 {
-    self = [super init];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:[self backupDatabasePath]]) {
 
-    if (![self tryToLoadDatabase]) {
-        // Failing to load the database is catastrophic.
-        //
-        // The best we can try to do is to discard the current database
-        // and behave like a clean install.
+        NSString *walFilePath = [[self dbPath] stringByAppendingString:@"-wal"];
+        NSString *shmFilePath = [[self dbPath] stringByAppendingString:@"-shm"];
 
-        OWSAnalyticsCritical(@"Could not load database");
+        [self __deleteFileIfNeededAtPath:walFilePath];
+        [self __deleteFileIfNeededAtPath:shmFilePath];
 
-        // Try to reset app by deleting database.
-        // Disabled resetting storage until we have better data on why this happens.
-        // [self resetSignalStorage];
+        NSError *error;
+        [[NSFileManager defaultManager] moveItemAtPath:[self backupDatabasePath] toPath:[self dbPath] error:&error];
 
-        if (![self tryToLoadDatabase]) {
-            OWSAnalyticsCritical(@"Could not load database (second attempt)");
-
-            [NSException raise:TSStorageManagerExceptionNameNoDatabase format:@"Failed to initialize database."];
+        if (error) {
+            DDLogError(@"Error moving backed up db file: %@", error.localizedDescription);
         }
-
-        OWSSingletonAssert();
     }
+}
 
-    return self;
+- (void)__deleteFileIfNeededAtPath:(NSString *)path
+{
+    if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+    }
 }
 
 - (BOOL)tryToLoadDatabase
 {
+    if (!self.accountName) {
+        DDLogError(@"You can't use without account name !!!");
+
+        return NO;
+    }
+
+    [self loadBackupIfNeeded];
 
     // We determine the database password first, since a side effect of
     // this can be deleting any existing database file (if we're recovering
     // from a corrupt keychain).
-    NSData *databasePassword = [self databasePassword];
 
     YapDatabaseOptions *options = [[YapDatabaseOptions alloc] init];
     options.corruptAction       = YapDatabaseCorruptAction_Fail;
+
+    __weak typeof (self)weakSelf = self;
     options.cipherKeyBlock = ^{
-        return databasePassword;
+        typeof(self)strongSelf = weakSelf;
+        return [strongSelf databasePassword];
     };
 
     _database = [[YapDatabase alloc] initWithPath:[self dbPath]
@@ -180,19 +189,40 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
         } @catch (NSException *exception) {
             // Sync log in case we bail.
             DDLogError(@"%@ Unarchiving key:%@ from collection:%@ and data %@ failed with error: %@",
-                self.tag,
-                key,
-                collection,
-                data,
-                exception.reason);
+                       self.tag,
+                       key,
+                       collection,
+                       data,
+                       exception.reason);
             DDLogError(@"%@ Raising exception.", self.tag);
             @throw exception;
         }
     };
 }
 
+- (void)setupForAccountName:(NSString *)accountName isFirstLaunch:(BOOL)isFirstLaunch
+{
+    self.accountName = [accountName copy];
+
+    if (isFirstLaunch) {
+
+        NSError *keyFetchError;
+        NSString *previousVersionDBPassword = [SAMKeychain passwordForService:keychainService account:keychainDBPassAccount error:&keyFetchError];
+        if (previousVersionDBPassword) {
+
+            NSError *error;
+            [SAMKeychain setPassword:previousVersionDBPassword forService:self.accountName account:keychainDBPassAccount error:&error];
+        }
+    }
+
+    [self setupDatabase];
+}
+
 - (void)setupDatabase
 {
+    [self createBackupDirectoryIfNeeded];
+    [self tryToLoadDatabase];
+
     // Register extensions which are essential for rendering threads synchronously
     [TSDatabaseView registerThreadDatabaseView];
     [TSDatabaseView registerThreadInteractionsDatabaseView];
@@ -213,7 +243,7 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
     OWSFailedMessagesJob *failedMessagesJob = [[OWSFailedMessagesJob alloc] initWithStorageManager:self];
     [failedMessagesJob asyncRegisterDatabaseExtensions];
     OWSFailedAttachmentDownloadsJob *failedAttachmentDownloadsMessagesJob =
-        [[OWSFailedAttachmentDownloadsJob alloc] initWithStorageManager:self];
+    [[OWSFailedAttachmentDownloadsJob alloc] initWithStorageManager:self];
     [failedAttachmentDownloadsMessagesJob asyncRegisterDatabaseExtensions];
 }
 
@@ -255,6 +285,25 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
 
 - (BOOL)dbExists {
     return [[NSFileManager defaultManager] fileExistsAtPath:[self dbPath]];
+}
+
+- (NSString *)backupDirectoryPath
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSURL *documentsURL = [[fileManager URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask]lastObject];
+
+    return [[documentsURL path] stringByAppendingFormat:@"/%@", @"Backup"];
+}
+
+- (void)createBackupDirectoryIfNeeded
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *backupDirectoryPath = [self backupDirectoryPath];
+
+    if (![fileManager fileExistsAtPath:backupDirectoryPath]) {
+        NSError *error;
+        [fileManager createDirectoryAtPath:backupDirectoryPath withIntermediateDirectories:NO attributes:nil error:&error];
+    }
 }
 
 - (NSString *)dbPath {
@@ -316,7 +365,7 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
 
     NSError *keyFetchError;
     NSString *dbPassword =
-        [SAMKeychain passwordForService:keychainService account:keychainDBPassAccount error:&keyFetchError];
+    [SAMKeychain passwordForService:self.accountName account:keychainDBPassAccount error:&keyFetchError];
 
     if (keyFetchError) {
         UIApplicationState applicationState = [UIApplication sharedApplication].applicationState;
@@ -338,11 +387,8 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
         BOOL shouldHavePassword = [NSFileManager.defaultManager fileExistsAtPath:[self dbPath]];
         if (shouldHavePassword) {
             OWSAnalyticsCriticalWithParameters(@"Could not retrieve database password from keychain",
-                @{ @"ErrorCode" : @(keyFetchError.code) });
+                                               @{ @"ErrorCode" : @(keyFetchError.code) });
         }
-
-        // Try to reset app by deleting database.
-        [self resetSignalStorage];
 
         dbPassword = [self createAndSetNewDatabasePassword];
     }
@@ -355,7 +401,8 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
 {
     NSString *newDBPassword = [[Randomness generateRandomBytes:30] base64EncodedString];
     NSError *keySetError;
-    [SAMKeychain setPassword:newDBPassword forService:keychainService account:keychainDBPassAccount error:&keySetError];
+
+    [SAMKeychain setPassword:newDBPassword forService:self.accountName account:keychainDBPassAccount error:&keySetError];
     if (keySetError) {
         DDLogError(@"%@ Setting DB password failed with error: %@", self.tag, keySetError);
 
@@ -374,13 +421,13 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
 
 - (void)purgeCollection:(NSString *)collection {
     [self.dbConnection readWriteWithBlock:^(YapDatabaseReadWriteTransaction *transaction) {
-      [transaction removeAllObjectsInCollection:collection];
+        [transaction removeAllObjectsInCollection:collection];
     }];
 }
 
 - (void)setObject:(id)object forKey:(NSString *)key inCollection:(NSString *)collection {
     [self.dbConnection readWriteWithBlock:^(YapDatabaseReadWriteTransaction *transaction) {
-      [transaction setObject:object forKey:key inCollection:collection];
+        [transaction setObject:object forKey:key inCollection:collection];
     }];
 }
 
@@ -394,7 +441,7 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
     __block NSString *object;
 
     [self.dbConnection readWithBlock:^(YapDatabaseReadTransaction *transaction) {
-      object = [transaction objectForKey:key inCollection:collection];
+        object = [transaction objectForKey:key inCollection:collection];
     }];
 
     return object;
@@ -405,7 +452,7 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
     __block NSDictionary *object;
 
     [self.dbConnection readWithBlock:^(YapDatabaseReadTransaction *transaction) {
-      object = [transaction objectForKey:key inCollection:collection];
+        object = [transaction objectForKey:key inCollection:collection];
     }];
 
     return object;
@@ -489,37 +536,44 @@ static NSString *keychainDBPassAccount    = @"TSDatabasePass";
 
 - (void)deleteThreadsAndMessages {
     [self.dbConnection readWriteWithBlock:^(YapDatabaseReadWriteTransaction *transaction) {
-      [transaction removeAllObjectsInCollection:[TSThread collection]];
-      [transaction removeAllObjectsInCollection:[SignalRecipient collection]];
-      [transaction removeAllObjectsInCollection:[TSInteraction collection]];
-      [transaction removeAllObjectsInCollection:[TSAttachment collection]];
+        [transaction removeAllObjectsInCollection:[TSThread collection]];
+        [transaction removeAllObjectsInCollection:[SignalRecipient collection]];
+        [transaction removeAllObjectsInCollection:[TSInteraction collection]];
+        [transaction removeAllObjectsInCollection:[TSAttachment collection]];
     }];
     [TSAttachmentStream deleteAttachments];
 }
 
 - (void)deletePasswordFromKeychain
 {
-    [SAMKeychain deletePasswordForService:keychainService account:keychainDBPassAccount];
+    [SAMKeychain deletePasswordForService:self.accountName account:keychainDBPassAccount];
 }
 
-- (void)deleteDatabaseFile
+- (NSString *)backupDatabasePath
 {
+    return [[self backupDirectoryPath] stringByAppendingFormat:@"/Signal-%@.sqlite", self.accountName];
+}
+
+- (void)backupDataBaseFile
+{
+    if (!self.accountName) {
+        return;
+    }
+
     NSError *error;
-    [[NSFileManager defaultManager] removeItemAtPath:[self dbPath] error:&error];
+    [[NSFileManager defaultManager] moveItemAtPath:[self dbPath] toPath:[self backupDatabasePath] error:&error];
     if (error) {
-        DDLogError(@"Failed to delete database: %@", error.description);
+        DDLogError(@"Error moving DB file to backup path");
     }
 }
 
 - (void)resetSignalStorage
 {
+    [self backupDataBaseFile];
+    
     self.database = nil;
     _dbConnection = nil;
-
-    [self deletePasswordFromKeychain];
-
-    [self deleteDatabaseFile];
-
+    
     [TSAttachmentStream deleteAttachments];
 }
 

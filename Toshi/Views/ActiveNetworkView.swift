@@ -54,7 +54,7 @@ class ActiveNetworkView: UIView {
         backgroundColor = Theme.mediumTextColor.withAlphaComponent(0.98)
 
         addSubview(textLabel)
-        textLabel.edges(to: self, insets: UIEdgeInsets(top: margin, left: margin, bottom: -margin, right: -margin), priority: .required)
+        textLabel.edges(to: self, insets: UIEdgeInsets(top: margin, left: margin, bottom: -margin, right: -margin), priority: .high)
 
         heightConstraint = heightAnchor.constraint(equalToConstant: 0)
         if !isDefaultNetworkActive {

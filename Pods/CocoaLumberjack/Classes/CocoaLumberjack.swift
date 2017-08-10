@@ -29,7 +29,7 @@ extension DDLogFlag {
         if let ourValid = DDLogLevel(rawValue: self.rawValue) {
             return ourValid
         } else {
-            let logFlag: DDLogFlag = self
+            let logFlag:DDLogFlag = self
             
             if logFlag.contains(.Verbose) {
                 return .Verbose

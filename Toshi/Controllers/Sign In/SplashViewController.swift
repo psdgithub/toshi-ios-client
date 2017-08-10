@@ -144,8 +144,7 @@ final class SplashViewController: UIViewController {
 
     @objc private func newAccountPressed(_: UIButton) {
         dismiss(animated: true) {
-            guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-            appDelegate.createOrRestoreNewUser()
+            (UIApplication.shared.delegate as? AppDelegate)?.createNewUser()
         }
     }
 }

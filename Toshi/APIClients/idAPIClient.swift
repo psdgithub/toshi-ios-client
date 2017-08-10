@@ -121,11 +121,7 @@ public class IDAPIClient: NSObject, CacheExpiryDefault {
 
     public func registerUserIfNeeded(_ success: @escaping (() -> Void)) {
         retrieveUser(username: Cereal.shared.address) { user in
-            if let user = user as TokenUser? {
-                TokenUser.createOrUpdateCurrentUser(with: user.asDict)
-
-                return
-            }
+            guard user == nil else { return }
 
             self.fetchTimestamp { timestamp in
                 let cereal = Cereal.shared
@@ -148,11 +144,7 @@ public class IDAPIClient: NSObject, CacheExpiryDefault {
                             guard response.statusCode == 200 else { return }
                             guard let json = json?.dictionary else { return }
 
-                            TokenUser.createOrUpdateCurrentUser(with: json)
-
-                            print("Current user is verified: \(String(describing: TokenUser.current?.verified))")
-
-                            print("Registered user with address: \(cereal.address)")
+                            TokenUser.createCurrentUser(with: json)
 
                             success()
                         case .failure(let json, _, let error):
@@ -300,7 +292,7 @@ public class IDAPIClient: NSObject, CacheExpiryDefault {
                     print(error.localizedDescription)
                     print(response)
                     print(json?.dictionary ?? "")
-
+                    
                     completion(nil)
                 }
             }

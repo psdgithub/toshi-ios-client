@@ -56,6 +56,9 @@ public class Cereal: NSObject {
         let walletKeychain = self.mnemonic.keychain.derivedKeychain(at: 44, hardened: true).derivedKeychain(at: 60, hardened: true).derivedKeychain(at: 0, hardened: true).derivedKeychain(at: 0).derivedKeychain(at: 0)
         let walletPrivateKey = walletKeychain.key.privateKey.hexadecimalString()
         walletCereal = EtherealCereal(privateKey: walletPrivateKey)
+
+        super.init()
+        NotificationCenter.default.addObserver(self, selector: #selector(userCreated(_:)), name: .userCreated, object: nil)
     }
 
     // restore from local user or create new
@@ -72,8 +75,6 @@ public class Cereal: NSObject {
             guard result == 0 else { fatalError("Failed to randomly generate and copy bytes for entropy generation. SecRandomCopyBytes error code: (\(result)).") }
 
             mnemonic = BTCMnemonic(entropy: entropy, password: nil, wordListType: .english)!
-
-            Yap.sharedInstance.insert(object: mnemonic.words.joined(separator: " "), for: Cereal.privateKeyStorageKey)
         }
 
         // ID path 0H/1/0
@@ -86,6 +87,9 @@ public class Cereal: NSObject {
         let walletKeychain = mnemonic.keychain.derivedKeychain(at: 44, hardened: true).derivedKeychain(at: 60, hardened: true).derivedKeychain(at: 0, hardened: true).derivedKeychain(at: 0).derivedKeychain(at: 0)
         let walletPrivateKey = walletKeychain.key.privateKey.hexadecimalString()
         walletCereal = EtherealCereal(privateKey: walletPrivateKey)
+
+        super.init()
+        NotificationCenter.default.addObserver(self, selector: #selector(userCreated(_:)), name: .userCreated, object: nil)
     }
 
     // MARK: - Sign with id
@@ -118,5 +122,9 @@ public class Cereal: NSObject {
 
     public func sha3WithWallet(string: String) -> String {
         return walletCereal.sha3(string: string)
+    }
+    
+    @objc fileprivate func userCreated(_ notification: Notification) {
+        Yap.sharedInstance.insert(object: mnemonic.words.joined(separator: " "), for: Cereal.privateKeyStorageKey)
     }
 }

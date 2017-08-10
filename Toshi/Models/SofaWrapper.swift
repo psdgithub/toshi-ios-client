@@ -175,6 +175,10 @@ open class SofaMessage: SofaWrapper {
         return .message
     }
 
+    var showKeyboard: Bool? {
+        return json["showKeyboard"] as? Bool
+    }
+
     open lazy var body: String = {
         guard self.content.hasPrefix(self.type.rawValue) else {
             fatalError("Creating SofaMessage with invalid type!")

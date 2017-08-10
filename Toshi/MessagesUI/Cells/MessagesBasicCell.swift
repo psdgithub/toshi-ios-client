@@ -2,7 +2,8 @@ import Foundation
 import UIKit
 import TinyConstraints
 
-enum MessageCornerType {
+enum MessagePositionType {
+    case single
     case top
     case middle
     case bottom
@@ -29,9 +30,7 @@ class MessagesBasicCell: UITableViewCell {
         return view
     }()
 
-    private(set) lazy var messageBorderImageView: UIImageView = {
-        UIImageView()
-    }()
+    private(set) lazy var messagesCornerView: MessagesCornerView = MessagesCornerView()
 
     private(set) lazy var avatarImageView: UIImageView = {
         let view = UIImageView()
@@ -50,18 +49,7 @@ class MessagesBasicCell: UITableViewCell {
     private var bubbleLeftConstantConstraint: NSLayoutConstraint?
     private var bubbleRightConstantConstraint: NSLayoutConstraint?
 
-    private let cornerBottomOutgoing = UIImage(named: "corner-bottom-outgoing")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
-    private let cornerBottomOutlineOutgoing = UIImage(named: "corner-bottom-outline-outgoing")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
-    private let cornerBottomOutline = UIImage(named: "corner-bottom-outline")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
-    private let cornerBottom = UIImage(named: "corner-bottom")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
-    private let cornerMiddleOutgoing = UIImage(named: "corner-middle-outgoing")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
-    private let cornerMiddleOutlineOutgoing = UIImage(named: "corner-middle-outline-outgoing")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
-    private let cornerMiddleOutline = UIImage(named: "corner-middle-outline")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
-    private let cornerMiddle = UIImage(named: "corner-middle")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
-    private let cornerTopOutgoing = UIImage(named: "corner-top-outgoing")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
-    private let cornerTopOutlineOutgoing = UIImage(named: "corner-top-outline-outgoing")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
-    private let cornerTopOutline = UIImage(named: "corner-top-outline")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
-    private let cornerTop = UIImage(named: "corner-top")?.stretchableImage(withLeftCapWidth: 18, topCapHeight: 18)
+    private var contentLayoutGuideTopConstraint: NSLayoutConstraint?
 
     var isOutGoing: Bool = false {
         didSet {
@@ -79,42 +67,17 @@ class MessagesBasicCell: UITableViewCell {
         }
     }
 
-    var cornerType: MessageCornerType = .top {
+    var positionType: MessagePositionType = .single {
         didSet {
-            messageBorderImageView.image = cornerImage
+            let isFirstMessage = positionType == .single || positionType == .top
+            contentLayoutGuideTopConstraint?.constant = isFirstMessage ? 8 : 4
+
+            let isAvatarHidden = positionType == .top || positionType == .middle || isOutGoing
+            avatarImageView.isHidden = isAvatarHidden
+
+            messagesCornerView.setImage(for: positionType, isOutGoing: isOutGoing, isPayment: self is MessagesPaymentCell)
         }
     }
-
-    private var cornerImage: UIImage? {
-
-        if cornerType == .top {
-            contentLayoutGuideTopConstraint?.constant = 8
-        } else {
-            contentLayoutGuideTopConstraint?.constant = 4
-        }
-
-        if self is MessagesPaymentCell {
-            switch cornerType {
-            case .top:
-                return isOutGoing ? cornerTopOutlineOutgoing : cornerTopOutline
-            case .middle:
-                return isOutGoing ? cornerMiddleOutlineOutgoing : cornerMiddleOutline
-            case .bottom:
-                return isOutGoing ? cornerBottomOutlineOutgoing : cornerBottomOutline
-            }
-        } else {
-            switch cornerType {
-            case .top:
-                return isOutGoing ? cornerTopOutgoing : cornerTop
-            case .middle:
-                return isOutGoing ? cornerMiddleOutgoing : cornerMiddle
-            case .bottom:
-                return isOutGoing ? cornerBottomOutgoing : cornerBottom
-            }
-        }
-    }
-
-    private var contentLayoutGuideTopConstraint: NSLayoutConstraint?
 
     required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -181,14 +144,14 @@ class MessagesBasicCell: UITableViewCell {
         bubbleLeftConstantConstraint = bubbleView.left(to: centerLayoutGuide, isActive: false)
         bubbleRightConstantConstraint = bubbleView.right(to: centerLayoutGuide, isActive: false)
 
-        bubbleView.addSubview(messageBorderImageView)
-        messageBorderImageView.edges(to: bubbleView)
+        bubbleView.addSubview(messagesCornerView)
+        messagesCornerView.edges(to: bubbleView)
     }
 
     override func prepareForReuse() {
         super.prepareForReuse()
 
         avatarImageView.image = nil
-        messageBorderImageView.image = nil
+        messagesCornerView.image = nil
     }
 }

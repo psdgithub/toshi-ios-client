@@ -15,7 +15,7 @@
 
 import Foundation
 
-protocol InputCellDelegate: class {
+protocol InputCellUpdater: class {
     func inputDidUpdate(_ detailText: String?, _ switchMode: Bool)
 }
 
@@ -26,7 +26,7 @@ final class InputCell: UITableViewCell, UITextFieldDelegate {
     @IBOutlet weak var switchControl: UISwitch!
     @IBOutlet private(set) weak var titleLabel: UILabel!
 
-    weak var delegate: InputCellDelegate?
+    var updater: InputCellUpdater?
 
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -47,12 +47,12 @@ final class InputCell: UITableViewCell, UITextFieldDelegate {
     }
 
     @objc @IBAction fileprivate func switchValueDidChange(_: Any) {
-        delegate?.inputDidUpdate(textField.text, switchControl.isOn)
+        updater?.inputDidUpdate(textField.text, switchControl.isOn)
     }
 
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let text = (textField.text as NSString?)?.replacingCharacters(in: range, with: string)
-        delegate?.inputDidUpdate(text, switchControl.isOn)
+        updater?.inputDidUpdate(text, switchControl.isOn)
 
         return true
     }

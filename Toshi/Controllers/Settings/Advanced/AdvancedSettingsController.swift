@@ -29,7 +29,7 @@ extension AdvancedSettingsController {
         let info = Bundle.main.infoDictionary!
         let version = info["CFBundleShortVersionString"]
         let buildNumber = info["CFBundleVersion"]
-        footerView.textLabel?.text = "Changing the network allows you to test developed apps without the risk of losing money. It’s recommended not to change these settings unless you are a developer\n\nApp version: \(version ?? "").\(buildNumber ?? "")"
+        footerView.textLabel?.text = "Changing the network allows you to test services without the risk of losing money. It’s recommended not to change these settings unless you are a developer\n\nApp version: \(version ?? "").\(buildNumber ?? "")"
     }
 
     public override func tableView(_: UITableView, didSelectRowAt _: IndexPath) {

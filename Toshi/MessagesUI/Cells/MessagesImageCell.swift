@@ -40,7 +40,7 @@ class MessagesImageCell: MessagesBasicCell {
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 
-        bubbleView.insertSubview(messageImageView, belowSubview: messageBorderImageView)
+        bubbleView.insertSubview(messageImageView, belowSubview: messagesCornerView)
         messageImageView.edges(to: bubbleView)
     }
 

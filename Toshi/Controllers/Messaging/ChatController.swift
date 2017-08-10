@@ -211,12 +211,12 @@ final class ChatController: OverlayController {
         setupActivityIndicator()
         setupActiveNetworkView(hidden: true)
 
-        viewModel.fetchAndUpdateBalance { balance, error in
+        viewModel.fetchAndUpdateBalance { [weak self] balance, error in
             if let error = error {
                 let alertController = UIAlertController.errorAlert(error as NSError)
                 Navigator.presentModally(alertController)
             } else {
-                self.set(balance: balance)
+                self?.set(balance: balance)
             }
         }
     }
@@ -226,8 +226,8 @@ final class ChatController: OverlayController {
 
         isVisible = true
 
-        viewModel.reloadDraft { placeholder in
-            self.textInputView.text = placeholder
+        viewModel.reloadDraft { [weak self] placeholder in
+            self?.textInputView.text = placeholder
         }
 
         tabBarController?.tabBar.isHidden = true
@@ -380,12 +380,14 @@ final class ChatController: OverlayController {
             })
     }
 
-    fileprivate func scrollToBottom(animated: Bool = true) {
-        let numberOfItems = tableView.numberOfRows(inSection: 0)
-        guard numberOfItems > 0 else { return }
+    fileprivate func adjustToLastMessage() {
+        guard let message = viewModel.messages.last as Message?, let sofaMessage = message.sofaWrapper as? SofaMessage else { return }
 
-        let lastIndexPath = IndexPath(row: numberOfItems - 1, section: 0)
-        tableView.scrollToRow(at: lastIndexPath, at: .bottom, animated: animated)
+        self.buttons = sofaMessage.buttons
+    }
+
+    fileprivate func scrollToBottom(animated: Bool = true) {
+        tableView.scrollRectToVisible(CGRect(x: 0, y: tableView.contentSize.height - tableView.bounds.height, width: tableView.bounds.width, height: tableView.bounds.height), animated: false)
     }
 
     fileprivate func adjustToPaymentState(_ state: TSInteraction.PaymentState, at indexPath: IndexPath) {
@@ -487,21 +489,21 @@ final class ChatController: OverlayController {
             cameraView?.attachPreviewView(animated: true)
         }
 
-        controller.finishedWithPhoto = { resultImage, _, _ in
+        controller.finishedWithPhoto = { [weak self] resultImage, _, _ in
 
             menu.dismiss(animated: true)
             if let image = resultImage as UIImage? {
-                self.viewModel.interactor.send(image: image)
+                self?.viewModel.interactor.send(image: image)
             }
         }
 
-        controller.finishedWithVideo = { videoURL, _, _, _, _, _, _ in
+        controller.finishedWithVideo = { [weak self] videoURL, _, _, _, _, _, _ in
             defer { menu.dismiss(animated: false) }
 
-            self.showActivityIndicator()
+            self?.showActivityIndicator()
 
             guard let videoURL = videoURL else { return }
-            self.viewModel.interactor.sendVideo(with: videoURL)
+            self?.viewModel.interactor.sendVideo(with: videoURL)
         }
     }
 
@@ -689,11 +691,11 @@ extension ChatController: MessagesPaymentCellDelegate {
 
         showActivityIndicator()
 
-        viewModel.interactor.sendPayment(in: paymentRequest.value) { (success: Bool) in
+        viewModel.interactor.sendPayment(in: paymentRequest.value) { [weak self] (success: Bool) in
             let state: TSInteraction.PaymentState = success ? .approved : .failed
-            self.adjustToPaymentState(state, at: indexPath)
+            self?.adjustToPaymentState(state, at: indexPath)
             DispatchQueue.main.asyncAfter(seconds: 2.0) {
-                self.hideActiveNetworkViewIfNeeded()
+                self?.hideActiveNetworkViewIfNeeded()
             }
         }
     }
@@ -718,22 +720,29 @@ extension ChatController: ImagesViewControllerDismissDelegate {
 
 extension ChatController: ChatViewModelOutput {
     func didReload() {
-        for message in viewModel.messages {
-            if let paymentRequest = message.sofaWrapper as? SofaPaymentRequest {
-                message.fiatValueString = EthereumConverter.fiatValueStringWithCode(forWei: paymentRequest.value, exchangeRate: EthereumAPIClient.shared.exchangeRate)
-                message.ethereumValueString = EthereumConverter.ethereumValueString(forWei: paymentRequest.value)
-            } else if let payment = message.sofaWrapper as? SofaPayment {
-                message.fiatValueString = EthereumConverter.fiatValueStringWithCode(forWei: payment.value, exchangeRate: EthereumAPIClient.shared.exchangeRate)
-                message.ethereumValueString = EthereumConverter.ethereumValueString(forWei: payment.value)
-            }
-        }
-
-        sendGreetingTriggerIfNeeded()
+        self.sendGreetingTriggerIfNeeded()
 
         UIView.performWithoutAnimation {
             self.tableView.reloadData()
             self.scrollToBottom(animated: false)
         }
+    }
+
+    func didRequireKeyboardVisibilityUpdate(_ sofaMessage: SofaMessage) {
+        if let showKeyboard = sofaMessage.showKeyboard {
+            if showKeyboard == true {
+                // A small delay is used here to make the inputField be able to become first responder
+                DispatchQueue.main.asyncAfter(seconds: 0.1) {
+                    self.textInputView.inputField.becomeFirstResponder()
+                }
+            } else {
+                self.textInputView.inputField.resignFirstResponder()
+            }
+        }
+    }
+
+    func didReceiveLastMessage() {
+        self.adjustToLastMessage()
     }
 
     fileprivate func sendGreetingTriggerIfNeeded() {
@@ -747,23 +756,6 @@ extension ChatController: ChatViewModelOutput {
 }
 
 extension ChatController: ChatInteractorOutput {
-
-    func didHandleSofaMessage(with buttons: [SofaMessage.Button], showKeyboard: Bool?) {
-        DispatchQueue.main.async {
-            if let showKeyboard = showKeyboard {
-                if showKeyboard == true {
-                    // A small delay is used here to make the inputField be able to become first responder
-                     DispatchQueue.main.asyncAfter(seconds: 0.1) {
-                        self.textInputView.inputField.becomeFirstResponder()
-                     }
-                } else {
-                    self.textInputView.inputField.resignFirstResponder()
-                }
-            }
-
-            self.buttons = buttons
-        }
-    }
 
     func didCatchError(_ error: Error) {
         hideActivityIndicator()
@@ -814,10 +806,11 @@ extension ChatController: ChatInputTextPanelDelegate {
         carouselItem.allowCaptions = true
         carouselItem.inhibitDocumentCaptions = true
         carouselItem.suggestionContext = SuggestionContext()
-        carouselItem.cameraPressed = { cameraView in
+        carouselItem.cameraPressed = { [weak self] cameraView in
             guard AccessChecker.checkCameraAuthorizationStatus(alertDismissComlpetion: nil) == true else { return }
+            guard let strongSelf = self else { return }
 
-            self.displayCamera(from: cameraView, menu: self.menuSheetController!, carouselItem: carouselItem)
+            strongSelf.displayCamera(from: cameraView, menu: strongSelf.menuSheetController!, carouselItem: carouselItem)
         }
 
         carouselItem.sendPressed = { [weak self] currentItem, asFiles in

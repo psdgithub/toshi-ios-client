@@ -19,15 +19,14 @@ protocol ChatInteractorOutput: class {
     func didCatchError(_ error: Error)
 
     func didFinishRequest()
-    func didHandleSofaMessage(with buttons: [SofaMessage.Button], showKeyboard: Bool?)
 }
 
 final class ChatsInteractor {
 
-    fileprivate var output: ChatInteractorOutput?
+    fileprivate weak var output: ChatInteractorOutput?
     private(set) var thread: TSThread
 
-    init(output: ChatInteractorOutput, thread: TSThread) {
+    init(output: ChatInteractorOutput?, thread: TSThread) {
         self.output = output
         self.thread = thread
 
@@ -215,8 +214,6 @@ final class ChatsInteractor {
 
             if interaction.hasAttachments() {
                 message.messageType = "Image"
-            } else if let sofaMessage = sofaWrapper as? SofaMessage {
-                output?.didHandleSofaMessage(with: sofaMessage.buttons, showKeyboard: sofaMessage.showKeyboard)
             } else if let paymentRequest = sofaWrapper as? SofaPaymentRequest {
                 message.messageType = "Actionable"
                 message.title = "Payment request"
@@ -277,9 +274,8 @@ final class ChatsInteractor {
     }
 
     fileprivate static func requestContactsRefresh() {
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return }
-
-        appDelegate.contactsManager.refreshContacts()
+        let appDelegate = UIApplication.shared.delegate as? AppDelegate
+        appDelegate?.contactsManager.refreshContacts()
     }
 
     func asyncProcess(signals: [SSignal]) {

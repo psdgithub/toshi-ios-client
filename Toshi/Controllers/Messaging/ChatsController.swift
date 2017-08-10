@@ -17,6 +17,10 @@ import UIKit
 import SweetFoundation
 import SweetUIKit
 
+public extension NSNotification.Name {
+    public static let ChatDatabaseCreated = NSNotification.Name(rawValue: "ChatDatabaseCreated")
+}
+
 /// Displays current conversations.
 open class ChatsController: SweetTableController {
 
@@ -48,14 +52,27 @@ open class ChatsController: SweetTableController {
 
         title = "Recent"
 
-        uiDatabaseConnection.asyncRead { transaction in
-            self.mappings.update(with: transaction)
+        loadViewIfNeeded()
+
+        if TokenUser.current != nil {
+            self.loadMessages()
+        } else {
+            NotificationCenter.default.addObserver(self, selector: #selector(chatDBCreated(_:)), name: .ChatDatabaseCreated, object: nil)
+
+            showEmptyStateIfNeeded()
+        }
+    }
+
+    fileprivate func loadMessages() {
+        uiDatabaseConnection.asyncRead { [weak self] transaction in
+            self?.mappings.update(with: transaction)
+
+            DispatchQueue.main.async {
+                self?.showEmptyStateIfNeeded()
+            }
         }
 
         registerNotifications()
-        loadViewIfNeeded()
-
-        showEmptyStateIfNeeded()
     }
 
     public required init?(coder _: NSCoder) {
@@ -76,6 +93,10 @@ open class ChatsController: SweetTableController {
         NotificationCenter.default.post(name: IDAPIClient.updateContactsNotification, object: nil, userInfo: nil)
 
         adjustEmptyView()
+    }
+
+    @objc fileprivate func chatDBCreated(_ notification: Notification) {
+        loadMessages()
     }
 
     open override func viewWillAppear(_ animated: Bool) {
@@ -287,7 +308,7 @@ extension ChatsController: UITableViewDelegate {
             if let thread = self.thread(at: indexPath) as TSThread? {
 
                 TSStorageManager.shared().dbConnection?.asyncReadWrite { transaction in
-                    thread.archiveThread(with: transaction)
+                    thread.remove(with: transaction)
                 }
             }
         }

@@ -35,10 +35,14 @@ extern NSString * _Nonnull const RequiresSignIn;
 
 @property (nonnull, nonatomic, copy, readonly) NSString *token;
 
-- (void)createOrRestoreNewUser;
+- (void)createNewUser;
+- (void)signInUser;
+
 - (void)setupSignalService;
 
 + (nonnull NSString *)documentsPath;
+
+- (void)signOutUser;
 
 @end
 

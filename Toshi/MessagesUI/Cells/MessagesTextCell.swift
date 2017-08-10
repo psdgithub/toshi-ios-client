@@ -80,12 +80,14 @@ class MessagesTextCell: MessagesBasicCell {
         if let text = textView.attributedText?.mutableCopy() as? NSMutableAttributedString {
             let range = NSRange(location: 0, length: text.string.length)
 
-            usernameDetector.enumerateMatches(in: text.string, options: [], range: range) { result, _, _ in
+            usernameDetector.enumerateMatches(in: text.string, options: [], range: range) { [weak self] result, _, _ in
+
+                guard let strongSelf = self else { return }
 
                 if let result = result {
                     let attributes: [String: Any] = [
                         NSLinkAttributeName: "toshi://username:\((text.string as NSString).substring(with: result.rangeAt(1)))",
-                        NSForegroundColorAttributeName: (self.isOutGoing ? Theme.lightTextColor : Theme.tintColor),
+                        NSForegroundColorAttributeName: (strongSelf.isOutGoing ? Theme.lightTextColor : Theme.tintColor),
                         NSUnderlineStyleAttributeName: NSUnderlineStyle.styleSingle.rawValue
                     ]
 

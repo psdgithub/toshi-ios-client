@@ -113,7 +113,7 @@ DEPENDENCIES:
   - Crashlytics
   - Fabric
   - pop
-  - SignalServiceKit (from `https://github.com/toshiapp/SignalServiceKit.git`, commit `d8c6931`)
+  - SignalServiceKit (from `https://github.com/toshiapp/SignalServiceKit.git`, commit `3820816d116875e417df478880ba5825c7f28c18`)
   - SocketRocket (from `https://github.com/facebook/SocketRocket.git`)
   - SSignalKit
   - SwiftLint
@@ -122,7 +122,7 @@ EXTERNAL SOURCES:
   AxolotlKit:
     :git: https://github.com/WhisperSystems/SignalProtocolKit.git
   SignalServiceKit:
-    :commit: d8c6931
+    :commit: 3820816d116875e417df478880ba5825c7f28c18
     :git: https://github.com/toshiapp/SignalServiceKit.git
   SocketRocket:
     :git: https://github.com/facebook/SocketRocket.git
@@ -132,7 +132,7 @@ CHECKOUT OPTIONS:
     :commit: f8f44d143bffd38e8470fdca0db7adf73a844956
     :git: https://github.com/WhisperSystems/SignalProtocolKit.git
   SignalServiceKit:
-    :commit: d8c6931
+    :commit: 3820816d116875e417df478880ba5825c7f28c18
     :git: https://github.com/toshiapp/SignalServiceKit.git
   SocketRocket:
     :commit: 877ac7438be3ad0b45ef5ca3969574e4b97112bf
@@ -160,6 +160,6 @@ SPEC CHECKSUMS:
   UnionFind: c33be5adb12983981d6e827ea94fc7f9e370f52d
   YapDatabase: cd911121580ff16675f65ad742a9eb0ab4d9e266
 
-PODFILE CHECKSUM: 85789092bca06334bde545a5667b56b0b71a5499
+PODFILE CHECKSUM: 22aaa1cdd1ff3f9c29d2cc3ec1c55764161a8ab8
 
 COCOAPODS: 1.2.1

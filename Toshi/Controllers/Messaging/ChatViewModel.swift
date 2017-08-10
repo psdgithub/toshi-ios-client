@@ -24,11 +24,13 @@ enum DisplayState {
 
 protocol ChatViewModelOutput: ChatInteractorOutput {
     func didReload()
+    func didRequireKeyboardVisibilityUpdate(_ sofaMessage: SofaMessage)
+    func didReceiveLastMessage()
 }
 
 final class ChatViewModel {
 
-    fileprivate var output: ChatViewModelOutput
+    fileprivate weak var output: ChatViewModelOutput?
 
     init(output: ChatViewModelOutput, thread: TSThread) {
         self.output = output
@@ -36,18 +38,15 @@ final class ChatViewModel {
 
         storageManager = TSStorageManager.shared()
 
-        uiDatabaseConnection.asyncRead { transaction in
-            self.mappings.update(with: transaction)
+        uiDatabaseConnection.asyncRead { [weak self] transaction in
+            self?.mappings.update(with: transaction)
         }
 
         loadMessages()
         registerNotifications()
 
-        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
-            return
-        }
-
-        contactsManager = appDelegate.contactsManager
+        let appDelegate = UIApplication.shared.delegate as? AppDelegate
+        contactsManager = appDelegate?.contactsManager
     }
 
     fileprivate var contactsManager: ContactsManager?
@@ -76,21 +75,55 @@ final class ChatViewModel {
 
     var currentButton: SofaMessage.Button?
 
-    var messageModels: [MessageModel] {
-        return visibleMessages.flatMap { message in
-            MessageModel(message: message)
-        }
-    }
+    var messageModels: [MessageModel] = []
+
+    fileprivate lazy var reloadQueue: OperationQueue = {
+        let queue = OperationQueue()
+        queue.maxConcurrentOperationCount = 1
+        queue.name = "Chat-Reload-Queue"
+
+        return queue
+    }()
 
     private(set) var messages: [Message] = [] {
         didSet {
-            self.output.didReload()
+            reloadQueue.cancelAllOperations()
+
+            let operation = BlockOperation()
+            operation.addExecutionBlock { [weak self] in
+
+                guard operation.isCancelled == false else { return }
+                guard let strongSelf = self else { return }
+
+                strongSelf.visibleMessages = strongSelf.messages.filter { message -> Bool in
+                    message.isDisplayable
+                }
+
+                for message in strongSelf.messages {
+                    if let paymentRequest = message.sofaWrapper as? SofaPaymentRequest {
+                        message.fiatValueString = EthereumConverter.fiatValueStringWithCode(forWei: paymentRequest.value, exchangeRate: EthereumAPIClient.shared.exchangeRate)
+                        message.ethereumValueString = EthereumConverter.ethereumValueString(forWei: paymentRequest.value)
+                    } else if let payment = message.sofaWrapper as? SofaPayment {
+                        message.fiatValueString = EthereumConverter.fiatValueStringWithCode(forWei: payment.value, exchangeRate: EthereumAPIClient.shared.exchangeRate)
+                        message.ethereumValueString = EthereumConverter.ethereumValueString(forWei: payment.value)
+                    }
+                }
+
+                DispatchQueue.main.async {
+                    strongSelf.output?.didReload()
+
+                    guard operation.isCancelled == false else { return }
+                    strongSelf.output?.didReceiveLastMessage()
+                }
+            }
+
+            reloadQueue.addOperation(operation)
         }
     }
 
-    var visibleMessages: [Message] {
-        return messages.filter { message -> Bool in
-            message.isDisplayable
+    var visibleMessages: [Message] = [] {
+        didSet {
+            messageModels = visibleMessages.flatMap { MessageModel(message: $0) }
         }
     }
 
@@ -139,6 +172,7 @@ final class ChatViewModel {
 
     @objc
     fileprivate func yapDatabaseDidChange(notification _: NSNotification) {
+        
         let notifications = uiDatabaseConnection.beginLongLivedReadTransaction()
 
         // If changes do not affect current view, update and return without updating collection view
@@ -160,19 +194,25 @@ final class ChatViewModel {
 
         guard messageRowChanges.count > 0 else { return }
 
-        uiDatabaseConnection.asyncRead { transaction in
+        uiDatabaseConnection.asyncRead { [weak self] transaction in
+            guard let strongSelf = self else { return }
+
             for change in messageRowChanges as! [YapDatabaseViewRowChange] {
                 guard let dbExtension = transaction.ext(TSMessageDatabaseViewExtensionName) as? YapDatabaseViewTransaction else { return }
 
                 switch change.type {
                 case .insert:
-                    guard let interaction = dbExtension.object(at: change.newIndexPath, with: self.mappings) as? TSInteraction else { return }
+                    guard let interaction = dbExtension.object(at: change.newIndexPath, with: strongSelf.mappings) as? TSInteraction else { return }
 
                     DispatchQueue.main.async {
-                        let result = self.interactor.handleInteraction(interaction, shouldProcessCommands: true)
-                        self.messages.append(result)
+                        let result = strongSelf.interactor.handleInteraction(interaction, shouldProcessCommands: true)
+                        strongSelf.messages.append(result)
 
-                        self.interactor.playSound(for: result)
+                        if let sofaMessage = result.sofaWrapper as? SofaMessage {
+                            strongSelf.output?.didRequireKeyboardVisibilityUpdate(sofaMessage)
+                        }
+
+                        strongSelf.interactor.playSound(for: result)
 
                         if let incoming = interaction as? TSIncomingMessage, !incoming.wasRead {
                             incoming.markAsReadLocally()
@@ -181,16 +221,16 @@ final class ChatViewModel {
 
                 case .update:
                     let indexPath = change.indexPath
-                    guard let interaction = dbExtension.object(at: indexPath, with: self.mappings) as? TSMessage else { return }
+                    guard let interaction = dbExtension.object(at: indexPath, with: strongSelf.mappings) as? TSMessage else { return }
 
                     DispatchQueue.main.async {
-                        let message = self.message(at: indexPath.row)
+                        let message = strongSelf.message(at: indexPath.row)
                         if let signalMessage = message.signalMessage as? TSOutgoingMessage, let newSignalMessage = interaction as? TSOutgoingMessage {
                             signalMessage.setState(newSignalMessage.messageState)
                         }
 
-                        let updatedMessage = self.interactor.handleInteraction(interaction, shouldProcessCommands: false)
-                        self.messages[indexPath.row] = updatedMessage
+                        let updatedMessage = strongSelf.interactor.handleInteraction(interaction, shouldProcessCommands: false)
+                        strongSelf.messages[indexPath.row] = updatedMessage
                     }
                 default:
                     break
@@ -235,26 +275,27 @@ final class ChatViewModel {
     }
 
     func loadMessages() {
-        uiDatabaseConnection.asyncRead { transaction in
-            self.mappings.update(with: transaction)
+        uiDatabaseConnection.asyncRead { [weak self] transaction in
+            guard let strongSelf = self else { return }
+            strongSelf.mappings.update(with: transaction)
 
             var messages = [Message]()
 
-            for i in 0 ..< self.mappings.numberOfItems(inSection: 0) {
+            for i in 0 ..< strongSelf.mappings.numberOfItems(inSection: 0) {
                 let indexPath = IndexPath(row: Int(i), section: 0)
                 guard let dbExtension = transaction.ext(TSMessageDatabaseViewExtensionName) as? YapDatabaseViewTransaction else { return }
-                guard let interaction = dbExtension.object(at: indexPath, with: self.mappings) as? TSInteraction else { return }
+                guard let interaction = dbExtension.object(at: indexPath, with: strongSelf.mappings) as? TSInteraction else { return }
 
                 var shouldProcess = false
                 if let message = interaction as? TSMessage, SofaType(sofa: message.body ?? "") == .paymentRequest {
                     shouldProcess = true
                 }
 
-                messages.append(self.interactor.handleInteraction(interaction, shouldProcessCommands: shouldProcess))
+                messages.append(strongSelf.interactor.handleInteraction(interaction, shouldProcessCommands: shouldProcess))
             }
 
             let current = Set(messages)
-            let previous = Set(self.messages)
+            let previous = Set(strongSelf.messages)
             let new = current.subtracting(previous).sorted { (message1, message2) -> Bool in
                 // Signal splits media message in two separate messages, one with the attachments and one with text.
                 // In this case two messages have the same Timestamp, we want to have the one with an attachment on top.
@@ -266,7 +307,7 @@ final class ChatViewModel {
             }
 
             DispatchQueue.main.async {
-                self.messages = new
+                strongSelf.messages = new
             }
         }
     }

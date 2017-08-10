@@ -5,7 +5,7 @@ github "UseSweet/SweetUIKit" "master"
 github "bakkenbaeck/CameraScanner" "01708dc3f1b440177173b48377ca18f6748fa58e"
 github "bakkenbaeck/EtherealCereal" ~> 0.0.3
 github "bakkenbaeck/Formulaic" "12d290e608d6da68d4956c265740621ce7d44f56"
-github "bakkenbaeck/Teapot" ~> 0.0.3
+github "bakkenbaeck/Teapot" "feature/mocking"
 github "hyperoslo/ImagePicker" "8cb970f"
 github "ibireme/YYText" "02eba9ffd392892a2fca5ed98f6628d29003ef78"
 github "marketplacer/keychain-swift" ~> 7.0

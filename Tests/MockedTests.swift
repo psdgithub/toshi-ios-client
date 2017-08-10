@@ -19,13 +19,11 @@ import Teapot
 
 class MockedTests: XCTestCase {
     var subject: AppsAPIClient!
-    let session = MockURLSession()
 
     override func setUp() {
         super.setUp()
 
-        let mockTeapot = Teapot(baseURL: URL(string: "https://token-id-service-development.herokuapp.com")!)
-        mockTeapot.session = session
+        let mockTeapot = MockTeapot(baseURL: URL(string: "https://token-id-service-development.herokuapp.com")!, bundle: Bundle(for: MockedTests.self))
         subject = AppsAPIClient(mockTeapot: mockTeapot)
     }
 
@@ -37,14 +35,5 @@ class MockedTests: XCTestCase {
             expect.fulfill()
         }
         self.waitForExpectations(timeout: 100)
-    }
-}
-
-class MockURLSession: URLSession {
-    var request: URLRequest?
-
-    override func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
-        self.request = request
-        return super.dataTask(with: request, completionHandler: completionHandler)
     }
 }

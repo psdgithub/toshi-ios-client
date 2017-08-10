@@ -50,6 +50,13 @@ NSString *const RequiresSignIn = @"RequiresSignIn";
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    BOOL isAppRunFromTests = (NSClassFromString(@"XCTestCase") != nil);
+    if (isAppRunFromTests) {
+        self.window = nil;
+
+        return NO;
+    }
+    
     NSString *tokenChatServiceBaseURL = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"TokenChatServiceBaseURL"];
     [OWSSignalService setBaseURLPath:tokenChatServiceBaseURL];
 

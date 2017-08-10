@@ -47,9 +47,7 @@ public class AppsAPIClient: NSObject, CacheExpiryDefault {
                     }
 
                     let apps = appsJSON.map { json -> TokenUser in
-                        let app = TokenUser(json: json)
-
-                        return app
+                        TokenUser(json: json)
                     }
 
                     completion(apps, nil)

@@ -1,9 +1,21 @@
 {
-  "commitish" : "0.0.3",
   "iOS" : [
     {
-      "hash" : "4c81447d2e62de5b56862feb9bca09da19a9511e10a2c14aa889f90fa3f87d48",
+      "hash" : "9c49b254c714f21d8c472869f323ad4bb9ece04b3cd5e8c4ca7e005ec44c8fbb",
       "name" : "Teapot"
+    }
+  ],
+  "commitish" : "551016582c0ef34a965e1735d0f68f102a5d51f3",
+  "watchOS" : [
+
+  ],
+  "tvOS" : [
+
+  ],
+  "Mac" : [
+    {
+      "hash" : "c073ae8c69814e3f814d525e050b06f742f7bcad159082a92dd9109efe8ba9e5",
+      "name" : "TeapotMac"
     }
   ]
 }

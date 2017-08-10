@@ -29,9 +29,12 @@ class MockedTests: XCTestCase {
 
     func testGetFeaturedApps() {
         let expect = self.expectation(description: "test")
-        subject.getFeaturedApps { (user, error) in
+        subject.getFeaturedApps { (users, error) in
             XCTAssertNil(error)
+            let user = users?.first
             XCTAssertNotNil(user)
+
+            XCTAssertEqual(user!.about, "It's all about tests")
             expect.fulfill()
         }
         self.waitForExpectations(timeout: 100)

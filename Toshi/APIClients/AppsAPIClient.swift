@@ -29,6 +29,12 @@ public class AppsAPIClient: NSObject, CacheExpiryDefault {
         teapot = Teapot(baseURL: URL(string: TokenDirectoryServiceBaseURLPath)!)
     }
 
+    convenience init(mockTeapot: MockTeapot) {
+        self.init()
+        self.teapot = mockTeapot
+    }
+
+
     func getTopRatedApps(limit: Int = 10, completion: @escaping (_ apps: [TokenUser]?, _ error: Error?) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             self.teapot.get("/v1/search/apps?top=true&recent=false&limit=\(limit)") { (result: NetworkResult) in

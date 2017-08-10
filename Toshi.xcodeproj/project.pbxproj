@@ -1193,9 +1193,9 @@
 		D197B6D91E419A23890C7E8B /* BlurView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D197BB4FC8D408B73FE253E5 /* BlurView.swift */; };
 		D197B83F0A9396CF2E7628D5 /* ActiveNetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D197B6E47F5F979A8C154E9A /* ActiveNetworkView.swift */; };
 		D197B9D646686EF7FE2D78B8 /* UINotificationName+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D197B669EF87D9D6642E12BA /* UINotificationName+Additions.swift */; };
+		D197BA9E564CE37492137E5F /* apps?top=false&recent=true&limit=10.json in Resources */ = {isa = PBXBuildFile; fileRef = D197B8108A4BE9AE31BB6441 /* apps?top=false&recent=true&limit=10.json */; };
 		D197BC32BA4D952C0E815F18 /* ActiveNetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D197B6E47F5F979A8C154E9A /* ActiveNetworkView.swift */; };
 		D197BEB965F76FE14EF90555 /* ActiveNetworkDisplaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = D197BAEA583CAF9862D17B38 /* ActiveNetworkDisplaying.swift */; };
-		D197BFF8452FCC36D9061316 /* StubAppsAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D197B0CA11DB0E8CDF2C28EE /* StubAppsAPIClient.swift */; };
 		DBFAB6FED2A3595E0356668C /* libPods-CocoaPods-Distribution.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2446336EA68730ACD1CE100D /* libPods-CocoaPods-Distribution.a */; };
 		E1A95D551E6EF092002762DA /* SettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A95D541E6EF092002762DA /* SettingsController.swift */; };
 		E60A52A51F28DB710032CAC0 /* AppsAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 143186B81E49C4EA0025E9B7 /* AppsAPIClient.swift */; };
@@ -2253,10 +2253,10 @@
 		A9F61F7E1E72E22900D892E5 /* SettingsSectionHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsSectionHeader.swift; sourceTree = "<group>"; };
 		A9F8D1C71E72B4AA003F5749 /* Checkbox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Checkbox.swift; sourceTree = "<group>"; };
 		CFAFE0DF986DC3B38AF50EE6 /* Pods-CocoaPods-Distribution.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CocoaPods-Distribution.release.xcconfig"; path = "Pods/Target Support Files/Pods-CocoaPods-Distribution/Pods-CocoaPods-Distribution.release.xcconfig"; sourceTree = "<group>"; };
-		D197B0CA11DB0E8CDF2C28EE /* StubAppsAPIClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StubAppsAPIClient.swift; sourceTree = "<group>"; };
 		D197B3B363EB7A16CAB6710F /* MockedTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MockedTests.swift; sourceTree = "<group>"; };
 		D197B669EF87D9D6642E12BA /* UINotificationName+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UINotificationName+Additions.swift"; sourceTree = "<group>"; };
 		D197B6E47F5F979A8C154E9A /* ActiveNetworkView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActiveNetworkView.swift; sourceTree = "<group>"; };
+		D197B8108A4BE9AE31BB6441 /* apps?top=false&recent=true&limit=10.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "apps?top=false&recent=true&limit=10.json"; sourceTree = "<group>"; };
 		D197BAEA583CAF9862D17B38 /* ActiveNetworkDisplaying.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActiveNetworkDisplaying.swift; sourceTree = "<group>"; };
 		D197BB4FC8D408B73FE253E5 /* BlurView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlurView.swift; sourceTree = "<group>"; };
 		E1A95D541E6EF092002762DA /* SettingsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsController.swift; sourceTree = "<group>"; };
@@ -2394,7 +2394,7 @@
 				14147EA51E8119F0006BD47B /* Info.plist */,
 				14147EA31E8119F0006BD47B /* Tests.swift */,
 				D197B3B363EB7A16CAB6710F /* MockedTests.swift */,
-				D197B0CA11DB0E8CDF2C28EE /* StubAppsAPIClient.swift */,
+				D197BCE6942D174BFE1E9582 /* Mocks */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -3846,6 +3846,14 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		D197BCE6942D174BFE1E9582 /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				D197B8108A4BE9AE31BB6441 /* apps?top=false&recent=true&limit=10.json */,
+			);
+			path = Mocks;
+			sourceTree = "<group>";
+		};
 		E1A95D581E6F031F002762DA /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -3991,6 +3999,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D197BA9E564CE37492137E5F /* apps?top=false&recent=true&limit=10.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4336,7 +4345,6 @@
 				E60A52A81F28DC750032CAC0 /* TokenUser.swift in Sources */,
 				D197B9D646686EF7FE2D78B8 /* UINotificationName+Additions.swift in Sources */,
 				D197B2130CE998230E96F600 /* MockedTests.swift in Sources */,
-				D197BFF8452FCC36D9061316 /* StubAppsAPIClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

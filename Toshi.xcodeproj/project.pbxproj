@@ -1106,6 +1106,14 @@
 		A90E5A311F069CAF00DAA501 /* BrowseAllController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90E5A301F069CAF00DAA501 /* BrowseAllController.swift */; };
 		A90E5A321F06A60F00DAA501 /* BrowseAllController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90E5A301F069CAF00DAA501 /* BrowseAllController.swift */; };
 		A90E5A331F06A62300DAA501 /* BrowseSearchResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90E5A2E1F0680A500DAA501 /* BrowseSearchResultView.swift */; };
+		A916290D1F3B5828008A7F36 /* PaymentAddressController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A916290C1F3B5828008A7F36 /* PaymentAddressController.swift */; };
+		A916290F1F3C3A02008A7F36 /* PaymentAddressInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A916290E1F3C3A02008A7F36 /* PaymentAddressInputView.swift */; };
+		A91629111F3C64FE008A7F36 /* PaymentNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91629101F3C64FE008A7F36 /* PaymentNavigationController.swift */; };
+		A91629121F3C660E008A7F36 /* PaymentNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91629101F3C64FE008A7F36 /* PaymentNavigationController.swift */; };
+		A91629131F3C6611008A7F36 /* PaymentAddressInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A916290E1F3C3A02008A7F36 /* PaymentAddressInputView.swift */; };
+		A91629141F3C6614008A7F36 /* PaymentAddressController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A916290C1F3B5828008A7F36 /* PaymentAddressController.swift */; };
+		A91629161F3C7CFD008A7F36 /* Payment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91629151F3C7CFD008A7F36 /* Payment.swift */; };
+		A91629171F3C85D6008A7F36 /* Payment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A91629151F3C7CFD008A7F36 /* Payment.swift */; };
 		A9181D221EDD8154005B63F6 /* RoundIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9181D211EDD8154005B63F6 /* RoundIconButton.swift */; };
 		A9191DC91F2203DD00498A4F /* AdvancedSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A9191DC51F2203DD00498A4F /* AdvancedSettings.storyboard */; };
 		A9191DCA1F2203DD00498A4F /* AdvancedSettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9191DC61F2203DD00498A4F /* AdvancedSettingsController.swift */; };
@@ -2210,6 +2218,10 @@
 		A90E5A281F03CE0400DAA501 /* BrowseAppCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowseAppCell.swift; sourceTree = "<group>"; };
 		A90E5A2E1F0680A500DAA501 /* BrowseSearchResultView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowseSearchResultView.swift; sourceTree = "<group>"; };
 		A90E5A301F069CAF00DAA501 /* BrowseAllController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowseAllController.swift; sourceTree = "<group>"; };
+		A916290C1F3B5828008A7F36 /* PaymentAddressController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentAddressController.swift; sourceTree = "<group>"; };
+		A916290E1F3C3A02008A7F36 /* PaymentAddressInputView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PaymentAddressInputView.swift; sourceTree = "<group>"; };
+		A91629101F3C64FE008A7F36 /* PaymentNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = PaymentNavigationController.swift; path = Toshi/Controllers/PaymentNavigationController.swift; sourceTree = SOURCE_ROOT; };
+		A91629151F3C7CFD008A7F36 /* Payment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Payment.swift; sourceTree = "<group>"; };
 		A9181D211EDD8154005B63F6 /* RoundIconButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RoundIconButton.swift; sourceTree = "<group>"; };
 		A9191DC51F2203DD00498A4F /* AdvancedSettings.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = AdvancedSettings.storyboard; sourceTree = "<group>"; };
 		A9191DC61F2203DD00498A4F /* AdvancedSettingsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsController.swift; sourceTree = "<group>"; };
@@ -3658,8 +3670,12 @@
 		9FCF132B1E531B380078FF7F /* Payments */ = {
 			isa = PBXGroup;
 			children = (
+				A91629151F3C7CFD008A7F36 /* Payment.swift */,
+				A916290C1F3B5828008A7F36 /* PaymentAddressController.swift */,
+				A916290E1F3C3A02008A7F36 /* PaymentAddressInputView.swift */,
 				9F78D9D31EE93EFF003A0B95 /* PaymentConfirmationController.swift */,
 				9F21E0621E546A03000E90C6 /* PaymentController.swift */,
+				A91629101F3C64FE008A7F36 /* PaymentNavigationController.swift */,
 				9FCF132C1E531B4E0078FF7F /* PaymentRequestController.swift */,
 				9F21E0651E546C4E000E90C6 /* PaymentSendController.swift */,
 			);
@@ -4346,6 +4362,7 @@
 			files = (
 				9F4D817F1EEA8D0600FB5361 /* RoundIconButton.swift in Sources */,
 				9F4D7FD71EEA8B4500FB5361 /* MediaAssetModernImageSignals.m in Sources */,
+				A91629121F3C660E008A7F36 /* PaymentNavigationController.swift in Sources */,
 				9F4D7FC51EEA8B4500FB5361 /* Hacks.m in Sources */,
 				9F4D7EDF1EEA8B4500FB5361 /* PhotoToolsController.m in Sources */,
 				9F4D80691EEA8B4500FB5361 /* ModernButtonViewModel.m in Sources */,
@@ -4485,6 +4502,7 @@
 				9F4D7F011EEA8B4500FB5361 /* PaintBrush.m in Sources */,
 				9F4D7F031EEA8B4500FB5361 /* PaintBrushPreview.m in Sources */,
 				A997B1001EF94B4C00A143FE /* AddMoneyHeader.swift in Sources */,
+				A91629171F3C85D6008A7F36 /* Payment.swift in Sources */,
 				9F4D80ED1EEA8B4500FB5361 /* MenuSheetDimView.m in Sources */,
 				9F4D7ED31EEA8B4500FB5361 /* PhotoDummyController.m in Sources */,
 				9F4D80D31EEA8B4500FB5361 /* MediaPickerGalleryGifItemView.m in Sources */,
@@ -4618,6 +4636,7 @@
 				9F4D80BF1EEA8B4500FB5361 /* MediaAssetsMomentsCollectionLayout.m in Sources */,
 				9F4D7F931EEA8B4500FB5361 /* CameraVolumeButtonHandler.m in Sources */,
 				9F4D7F751EEA8B4500FB5361 /* AccessChecker.m in Sources */,
+				A91629141F3C6614008A7F36 /* PaymentAddressController.swift in Sources */,
 				9F4D81471EEA8B4600FB5361 /* PhotoEditorCurvesHistogramView.m in Sources */,
 				149F9A831E72E29A00FB74AA /* ChatsFloatingHeaderView.swift in Sources */,
 				9F4D80AB1EEA8B4500FB5361 /* CheckButtonView.m in Sources */,
@@ -4816,6 +4835,7 @@
 				9F4D7EE51EEA8B4500FB5361 /* TGMediaAvatarEditorTransition.m in Sources */,
 				9F4D80071EEA8B4500FB5361 /* PSKeyValueDecoder.m in Sources */,
 				149F9AAD1E72E29A00FB74AA /* QRCodeController.swift in Sources */,
+				A91629131F3C6611008A7F36 /* PaymentAddressInputView.swift in Sources */,
 				9F4D7FC91EEA8B4500FB5361 /* ImageManagerTask.m in Sources */,
 				9F4D7EBB1EEA8B4500FB5361 /* MediaAssetsPickerController.m in Sources */,
 				9F4D7FCD1EEA8B4500FB5361 /* ItemDescriptor.m in Sources */,
@@ -4972,6 +4992,7 @@
 				9F4D7EC61EEA8B4500FB5361 /* OverlayControllerWindow.m in Sources */,
 				9F4D80FC1EEA8B4500FB5361 /* ModernButton.m in Sources */,
 				9FDB3B191E6D648000EE5FD7 /* ControlsCollectionView.swift in Sources */,
+				A91629111F3C64FE008A7F36 /* PaymentNavigationController.swift in Sources */,
 				9F4D7F241EEA8B4500FB5361 /* PaintUndoManager.m in Sources */,
 				9F4D80F01EEA8B4500FB5361 /* MenuSheetTitleItemView.m in Sources */,
 				9F4D803A1EEA8B4500FB5361 /* AudioSessionManager.m in Sources */,
@@ -5018,6 +5039,7 @@
 				E1A95D551E6EF092002762DA /* SettingsController.swift in Sources */,
 				9F4D80E41EEA8B4500FB5361 /* MediaPickerSelectionGestureRecognizer.m in Sources */,
 				9F4D7F541EEA8B4500FB5361 /* PhotoPaintFont.m in Sources */,
+				A91629161F3C7CFD008A7F36 /* Payment.swift in Sources */,
 				9F4D7F221EEA8B4500FB5361 /* PaintTexture.m in Sources */,
 				9F4D7FCC1EEA8B4500FB5361 /* ItemDescriptor.m in Sources */,
 				9F4D80FA1EEA8B4500FB5361 /* MessageImageViewTimestampView.m in Sources */,
@@ -5126,6 +5148,7 @@
 				A9AC74171E78277700365029 /* BackupPhraseWordView.swift in Sources */,
 				A9BF33AD1E76DF0B009A51AA /* BackupPhraseEnableController.swift in Sources */,
 				9FA12BF21E65D135003705F6 /* SoundPlayer.swift in Sources */,
+				A916290D1F3B5828008A7F36 /* PaymentAddressController.swift in Sources */,
 				9F4D7EF01EEA8B4500FB5361 /* ContrastTool.m in Sources */,
 				9F4D80C81EEA8B4500FB5361 /* MediaAssetsTipView.m in Sources */,
 				9F4D802E1EEA8B4500FB5361 /* mdb.c in Sources */,
@@ -5297,6 +5320,7 @@
 				A9F8D1C81E72B4AA003F5749 /* Checkbox.swift in Sources */,
 				9F4D81741EEA8B4600FB5361 /* SharedMediaCollectionView.m in Sources */,
 				9F4D7F441EEA8B4500FB5361 /* PhotoFilterDefinition.m in Sources */,
+				A916290F1F3C3A02008A7F36 /* PaymentAddressInputView.swift in Sources */,
 				9F4D7FFC1EEA8B4500FB5361 /* PGCameraMomentSession.m in Sources */,
 				9F4D80841EEA8B4500FB5361 /* AttachmentCameraView.m in Sources */,
 				9F4D7F2A1EEA8B4500FB5361 /* PhotoCropControl.m in Sources */,

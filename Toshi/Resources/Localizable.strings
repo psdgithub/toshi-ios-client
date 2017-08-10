@@ -24,3 +24,17 @@
 "balance-navigation-title" = "Balance";
 "balance-action-send" = "Send";
 "balance-action-deposit" = "Deposit";
+
+/* Payment */
+"payment_request" = "Request Payment";
+"payment_send" = "New Payment";
+"payment_input_placeholder" = "Recipient Address";
+"payment_send_prefix" = "Send ";
+"payment_send_description" = "Enter the recipient’s ETH wallet address.";
+"payment_send_button" = "Send";
+"payment_qr_scanner_instructions" = "Scan QR Code";
+
+"payment_message_failure_title" = "Failed";
+"payment_message_success_title" = "Succeeded";
+"payment_message_success_message" = "Your Payment was successful.";
+"payment_message_button" = "Ok";

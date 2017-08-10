@@ -69,15 +69,6 @@ class PaymentController: UIViewController {
         return view
     }()
 
-    lazy var toolbar: UIToolbar = {
-        let view = UIToolbar(withAutoLayout: true)
-        view.delegate = self
-        view.barTintColor = Theme.navigationBarColor
-        view.tintColor = Theme.tintColor
-
-        return view
-    }()
-
     fileprivate lazy var networkView: ActiveNetworkView = {
         self.defaultActiveNetworkView()
     }()
@@ -100,12 +91,6 @@ class PaymentController: UIViewController {
         shadowTextField.becomeFirstResponder()
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        shadowTextField.becomeFirstResponder()
-    }
-
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
 
@@ -116,14 +101,9 @@ class PaymentController: UIViewController {
         view.addSubview(shadowTextField)
         view.addSubview(currencyAmountLabel)
         view.addSubview(etherAmountLabel)
-        view.addSubview(toolbar)
-
-        toolbar.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor).isActive = true
-        toolbar.leftAnchor.constraint(equalTo: view.leftAnchor).isActive = true
-        toolbar.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
-
+        
         currencyAmountLabel.set(height: 64)
-        currencyAmountLabel.topAnchor.constraint(equalTo: toolbar.bottomAnchor, constant: 80).isActive = true
+        currencyAmountLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 80 + 64).isActive = true
         currencyAmountLabel.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 24).isActive = true
         currencyAmountLabel.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -24).isActive = true
 
@@ -198,7 +178,7 @@ extension PaymentController: ActiveNetworkDisplaying {
     }
 
     var activeNetworkViewConstraints: [NSLayoutConstraint] {
-        return [activeNetworkView.topAnchor.constraint(equalTo: toolbar.bottomAnchor),
+        return [activeNetworkView.topAnchor.constraint(equalTo: view.topAnchor, constant: 64),
                 activeNetworkView.leftAnchor.constraint(equalTo: view.leftAnchor),
                 activeNetworkView.rightAnchor.constraint(equalTo: view.rightAnchor)]
     }

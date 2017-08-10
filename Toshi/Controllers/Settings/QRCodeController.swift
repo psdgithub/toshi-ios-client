@@ -20,7 +20,6 @@ import CoreImage
 class QRCodeController: UIViewController {
 
     static let addUsernameBasePath = "https://app.tokenbrowser.com/add/"
-
     static let addUserPath = "/add/"
     static let paymentWithUsernamePath = "/pay/"
     static let paymentWithAddressPath = "/ethereum:"
@@ -29,16 +28,10 @@ class QRCodeController: UIViewController {
         return .default
     }
 
-    private lazy var qrCodeImageView: UIImageView = {
-        let view = UIImageView(withAutoLayout: true)
-        view.set(height: 300)
-        view.set(width: 300)
-
-        return view
-    }()
+    private lazy var qrCodeImageView: UIImageView = UIImageView()
 
     private lazy var nameLabel: UILabel = {
-        let view = UILabel(withAutoLayout: true)
+        let view = UILabel()
         view.font = Theme.light(size: 35)
         view.textAlignment = .center
         view.adjustsFontSizeToFitWidth = true
@@ -48,7 +41,7 @@ class QRCodeController: UIViewController {
     }()
 
     private lazy var usernameLabel: UILabel = {
-        let view = UILabel(withAutoLayout: true)
+        let view = UILabel()
         view.font = Theme.regular(size: 16)
         view.textAlignment = .center
         view.adjustsFontSizeToFitWidth = true
@@ -75,22 +68,22 @@ class QRCodeController: UIViewController {
         view.addSubview(nameLabel)
         view.addSubview(usernameLabel)
 
-        let top: CGFloat = navigationController?.navigationBar.frame.height ?? 0.0
+        let top = navigationController?.navigationBar.frame.height ?? 0
 
-        qrCodeImageView.set(height: 300)
-        qrCodeImageView.set(width: 300)
-        qrCodeImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        qrCodeImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -top).isActive = true
+        qrCodeImageView.height(300)
+        qrCodeImageView.width(300)
+        qrCodeImageView.centerX(to: view)
+        qrCodeImageView.centerY(to: view, offset: -top)
 
-        nameLabel.set(height: 42)
-        nameLabel.topAnchor.constraint(equalTo: qrCodeImageView.bottomAnchor, constant: 16).isActive = true
-        nameLabel.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 16).isActive = true
-        nameLabel.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -16).isActive = true
+        nameLabel.height(42)
+        nameLabel.topToBottom(of: qrCodeImageView, offset: 16)
+        nameLabel.left(to: view, offset: 16)
+        nameLabel.right(to: view, offset: -16)
 
-        usernameLabel.set(height: 24)
-        usernameLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 6).isActive = true
-        usernameLabel.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 16).isActive = true
-        usernameLabel.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -16).isActive = true
+        usernameLabel.height(24)
+        usernameLabel.topToBottom(of: nameLabel, offset: 6)
+        usernameLabel.left(to: view, offset: 16)
+        usernameLabel.right(to: view, offset: -16)
     }
 }
 

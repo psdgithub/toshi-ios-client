@@ -379,8 +379,9 @@ public class ContactController: UIViewController {
     @objc private func didTapPayButton() {
         let paymentSendController = PaymentSendController()
         paymentSendController.delegate = self
-
-        Navigator.presentModally(paymentSendController)
+        
+        let navigationController = UINavigationController(rootViewController: paymentSendController)
+        Navigator.presentModally(navigationController)
     }
 
     func didTapRateUser() {
@@ -445,14 +446,14 @@ extension ContactController: RateUserControllerDelegate {
 }
 
 extension ContactController: PaymentSendControllerDelegate {
-    func paymentSendControllerDidFinish(valueInWei: NSDecimalNumber?) {
-        defer {
-            self.dismiss(animated: true)
-        }
-
-        guard let value = valueInWei else {
-            return
-        }
+    
+    func paymentSendControllerCanceled() {
+        dismiss(animated: true)
+    }
+    
+    func paymentSendControllerFinished(with valueInWei: NSDecimalNumber?, for controller: PaymentSendController) {
+        defer { dismiss(animated: true) }
+        guard let value = valueInWei else { return }
 
         let etherAPIClient = EthereumAPIClient.shared
 

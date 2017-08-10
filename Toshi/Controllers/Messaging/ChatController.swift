@@ -879,9 +879,12 @@ extension ChatController: ImagePickerDelegate {
 extension ChatController: ChatsFloatingHeaderViewDelegate {
 
     func messagesFloatingView(_: ChatsFloatingHeaderView, didPressRequestButton _: UIButton) {
+        
         let paymentRequestController = PaymentRequestController()
         paymentRequestController.delegate = self
-        Navigator.presentModally(paymentRequestController)
+        
+        let navigationController = PaymentNavigationController(rootViewController: paymentRequestController)
+        Navigator.presentModally(navigationController)
     }
 
     func messagesFloatingView(_: ChatsFloatingHeaderView, didPressPayButton _: UIButton) {
@@ -890,22 +893,24 @@ extension ChatController: ChatsFloatingHeaderViewDelegate {
 
         let paymentSendController = PaymentSendController()
         paymentSendController.delegate = self
-
-        Navigator.presentModally(paymentSendController)
+        
+        let navigationController = UINavigationController(rootViewController: paymentSendController)
+        Navigator.presentModally(navigationController)
     }
 }
 
 extension ChatController: PaymentSendControllerDelegate {
-
-    func paymentSendControllerDidFinish(valueInWei: NSDecimalNumber?) {
-        defer {
-            self.dismiss(animated: true)
-        }
-
-        guard let valueInWei = valueInWei else { return }
+    
+    func paymentSendControllerCanceled() {
+        dismiss(animated: true)
+    }
+    
+    func paymentSendControllerFinished(with valueInWei: NSDecimalNumber?, for controller: PaymentSendController) {
+        defer { dismiss(animated: true) }
+        guard let value = valueInWei else { return }
 
         showActivityIndicator()
-        viewModel.interactor.sendPayment(in: valueInWei)
+        viewModel.interactor.sendPayment(in: value)
     }
 }
 

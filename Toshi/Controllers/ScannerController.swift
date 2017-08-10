@@ -25,6 +25,18 @@ class ScannerController: ScannerViewController {
 
         setupActivityIndicator()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        navigationController?.setNavigationBarHidden(true, animated: true)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        navigationController?.setNavigationBarHidden(false, animated: true)
+    }
 
     fileprivate lazy var activityView: UIActivityIndicatorView = {
         self.defaultActivityIndicator()
@@ -75,7 +87,7 @@ extension ScannerController: PaymentPresentable {
 
     func paymentApproved(with parameters: [String: Any], userInfo: UserInfo) {
         isStatusBarHidden = false
-        guard userInfo.isLocal == false else {
+        guard !userInfo.isLocal else {
             if let tabbarController = self.presentingViewController as? TabBarController, let address = userInfo.address as String? {
                 tabbarController.openPaymentMessage(to: address, parameters: parameters)
             }

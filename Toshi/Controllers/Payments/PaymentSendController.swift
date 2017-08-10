@@ -16,39 +16,37 @@
 import UIKit
 
 protocol PaymentSendControllerDelegate: class {
-    func paymentSendControllerDidFinish(valueInWei: NSDecimalNumber?)
+    func paymentSendControllerCanceled()
+    func paymentSendControllerFinished(with valueInWei: NSDecimalNumber?, for controller: PaymentSendController)
 }
 
 class PaymentSendController: PaymentController {
+    
     weak var delegate: PaymentSendControllerDelegate?
-
-    lazy var continueBarButton: UIBarButtonItem = {
-        let item = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(send))
-
-        return item
-    }()
-
-    lazy var cancelBarButton: UIBarButtonItem = {
-        let item = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
-
-        return item
-    }()
+    
+    lazy var continueBarButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(send))
+    lazy var cancelBarButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        let spacing = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let title = UIBarButtonItem(title: "Send Payment", style: .plain, target: nil, action: nil)
-        title.setTitleTextAttributes([NSFontAttributeName: Theme.semibold(size: 17), NSForegroundColorAttributeName: Theme.darkTextColor], for: .normal)
-
-        toolbar.items = [self.cancelBarButton, spacing, title, spacing, self.continueBarButton]
+        
+        title = Localized("payment_send")
+        
+        navigationItem.leftBarButtonItem = cancelBarButton
+        navigationItem.rightBarButtonItem = continueBarButton
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        navigationItem.backBarButtonItem = UIBarButtonItem.back
     }
 
     func cancel() {
-        delegate?.paymentSendControllerDidFinish(valueInWei: nil)
+        delegate?.paymentSendControllerCanceled()
     }
 
     func send() {
-        delegate?.paymentSendControllerDidFinish(valueInWei: valueInWei)
+        delegate?.paymentSendControllerFinished(with: valueInWei, for: self)
     }
 }

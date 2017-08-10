@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1400418A1E71588A00C1FD87 /* ReputationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 140041891E71588A00C1FD87 /* ReputationView.swift */; };
-		14147EA41E8119F0006BD47B /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14147EA31E8119F0006BD47B /* Tests.swift */; };
+		14147EA41E8119F0006BD47B /* AppsAPIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14147EA31E8119F0006BD47B /* AppsAPIClientTests.swift */; };
 		143186B91E49C4EA0025E9B7 /* AppsAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 143186B81E49C4EA0025E9B7 /* AppsAPIClient.swift */; };
 		143587031E5C4CBE007A268A /* SearchResultCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 143587021E5C4CBE007A268A /* SearchResultCell.swift */; };
 		145666041E30D24C00E52027 /* ChatsFloatingHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145666031E30D24C00E52027 /* ChatsFloatingHeaderView.swift */; };
@@ -1275,7 +1275,7 @@
 /* Begin PBXFileReference section */
 		140041891E71588A00C1FD87 /* ReputationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReputationView.swift; sourceTree = "<group>"; };
 		14147EA11E8119F0006BD47B /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		14147EA31E8119F0006BD47B /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
+		14147EA31E8119F0006BD47B /* AppsAPIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppsAPIClientTests.swift; sourceTree = "<group>"; };
 		14147EA51E8119F0006BD47B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		142709A11E531A6100BF964B /* Distribution.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Distribution.plist; sourceTree = "<group>"; };
 		143186B81E49C4EA0025E9B7 /* AppsAPIClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppsAPIClient.swift; sourceTree = "<group>"; };
@@ -2402,7 +2402,7 @@
 			isa = PBXGroup;
 			children = (
 				14147EA51E8119F0006BD47B /* Info.plist */,
-				14147EA31E8119F0006BD47B /* Tests.swift */,
+				14147EA31E8119F0006BD47B /* AppsAPIClientTests.swift */,
 				D197B18BC61D2FA9F500E49F /* Mocks */,
 			);
 			path = Tests;
@@ -4350,7 +4350,7 @@
 				E60A52B01F28E6FF0032CAC0 /* NetworkSwitcher.swift in Sources */,
 				9FE533891F0B9CBC00B0C2B5 /* NSDecimalNumber+Additions.swift in Sources */,
 				E60A52B11F28E7830032CAC0 /* Extensions.swift in Sources */,
-				14147EA41E8119F0006BD47B /* Tests.swift in Sources */,
+				14147EA41E8119F0006BD47B /* AppsAPIClientTests.swift in Sources */,
 				9FE533881F0B9C5500B0C2B5 /* EthereumConverter.swift in Sources */,
 				E60A52AB1F28E0F30032CAC0 /* Yap.swift in Sources */,
 				E60A52A81F28DC750032CAC0 /* TokenUser.swift in Sources */,

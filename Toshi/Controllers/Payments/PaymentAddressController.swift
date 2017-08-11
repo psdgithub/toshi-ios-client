@@ -125,7 +125,7 @@ extension PaymentAddressController: ScannerViewControllerDelegate {
                     return
                 }
                 
-                self.addressInputView.paymentAddress = contact.paymentAddress
+                self?.addressInputView.paymentAddress = contact.paymentAddress
                 
                 SoundPlayer.playSound(type: .scanned)
                 controller.navigationController?.popViewController(animated: true)

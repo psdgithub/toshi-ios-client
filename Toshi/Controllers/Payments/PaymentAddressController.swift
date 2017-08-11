@@ -37,7 +37,7 @@ class PaymentAddressController: UIViewController {
         return view
     }()
     
-    lazy var sendBarButton = UIBarButtonItem(title: Localized("payment_send_button"), style: .plain, target: self, action: #selector(send))
+    private lazy var sendBarButton = UIBarButtonItem(title: Localized("payment_send_button"), style: .plain, target: self, action: #selector(send))
     
     init(with valueInWei: NSDecimalNumber) {
         self.valueInWei = valueInWei

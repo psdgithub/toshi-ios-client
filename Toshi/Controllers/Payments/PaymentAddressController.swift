@@ -118,7 +118,7 @@ extension PaymentAddressController: ScannerViewControllerDelegate {
             let username = result.replacingOccurrences(of: QRCodeController.addUsernameBasePath, with: "")
             let contactName = TokenUser.name(from: username)
             
-            IDAPIClient.shared.retrieveContact(username: contactName) { contact in
+            IDAPIClient.shared.retrieveContact(username: contactName) { [weak self] contact in
                 guard let contact = contact else {
                     controller.startScanning()
                     
